@@ -20,7 +20,7 @@ webpackJsonp([1],[
 
 	var _App2 = _interopRequireDefault(_App);
 
-	var _store = __webpack_require__(371);
+	var _store = __webpack_require__(375);
 
 	var _store2 = _interopRequireDefault(_store);
 
@@ -1769,7 +1769,7 @@ webpackJsonp([1],[
 
 	var _TaskListContainer2 = _interopRequireDefault(_TaskListContainer);
 
-	var _style = __webpack_require__(376);
+	var _style = __webpack_require__(371);
 
 	var _style2 = _interopRequireDefault(_style);
 
@@ -1841,13 +1841,13 @@ webpackJsonp([1],[
 	      dispatch((0, _actions.expandTask)(id));
 	    },
 	    onTaskAdd: function onTaskAdd(parentTaskId, objective) {
-	      dispatch((0, _actions.addTask)(parentTaskId, objective)), dispatch((0, _actions.postAppData)());
+	      dispatch((0, _actions.addTaskAndPostData)(parentTaskId, objective));
 	    },
 	    onTaskObjectiveEdit: function onTaskObjectiveEdit(id, objective) {
-	      dispatch((0, _actions.editTaskObjective)(id, objective)), dispatch((0, _actions.postAppData)());
+	      dispatch((0, _actions.editTaskObjectiveAndPostData)(id, objective));
 	    },
 	    onAppLoad: function onAppLoad() {
-	      dispatch((0, _actions.loadAppData)());
+	      dispatch((0, _actions.loadTaskList)());
 	    }
 	  };
 	};
@@ -23359,19 +23359,55 @@ webpackJsonp([1],[
 
 	var _stringify2 = _interopRequireDefault(_stringify);
 
+	exports.loadTaskList = loadTaskList;
+	exports.postTaskList = postTaskList;
 	exports.expandTask = expandTask;
 	exports.addTask = addTask;
 	exports.editTaskObjective = editTaskObjective;
-	exports.loadAppData = loadAppData;
-	exports.postAppData = postAppData;
-
-	var _store = __webpack_require__(371);
-
-	var _store2 = _interopRequireDefault(_store);
+	exports.addTaskAndPostData = addTaskAndPostData;
+	exports.editTaskObjectiveAndPostData = editTaskObjectiveAndPostData;
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	var baseURL =  false ? 'http://localhost:5000' : 'https://pacific-inlet-73638.herokuapp.com';
+
+	function receiveTaskList(taskList) {
+	  return {
+	    type: 'RECEIVE_DATA',
+	    taskList: taskList
+	  };
+	}
+
+	// NOTE: while POSTing data, server sends back root taskApp as object..
+	//       while a GET receives object with root taskApp as Array
+
+	function loadTaskList() {
+	  return function (dispatch) {
+	    return fetch(baseURL + '/taskApp').then(function (response) {
+	      return response.json();
+	    }).then(function (json) {
+	      return dispatch(receiveTaskList(json.taskList[0].tasksById));
+	    });
+	  };
+	}
+
+	function postTaskList() {
+	  return function (dispatch, getState) {
+	    return fetch(baseURL + '/taskApp', {
+	      method: "POST",
+	      body: (0, _stringify2.default)({
+	        taskList: { tasksById: getState().tasksById }
+	      }),
+	      headers: new Headers({
+	        'Content-Type': 'application/json'
+	      })
+	    }).then(function (response) {
+	      return response.json();
+	    }).then(function (json) {
+	      return dispatch(receiveTaskList(json.taskList.tasksById));
+	    });
+	  };
+	}
 
 	function expandTask(id) {
 	  return {
@@ -23398,44 +23434,18 @@ webpackJsonp([1],[
 	  };
 	}
 
-	function receiveAppData(taskApp) {
-	  return {
-	    type: 'RECEIVE_DATA',
-	    taskApp: taskApp
+	// TODO: need clarity if these all action dispatches here occur synchronously?
+	function addTaskAndPostData(parentTaskId, objective) {
+	  return function (dispatch) {
+	    dispatch(addTask(parentTaskId, objective));
+	    dispatch(postTaskList());
 	  };
 	}
 
-	// NOTE: while POSTing data, server sends back root taskApp as object..
-	//       while a GET receives object with root taskApp as Array
-
-	function loadAppData() {
+	function editTaskObjectiveAndPostData(id, newObjective) {
 	  return function (dispatch) {
-	    return fetch(baseURL + '/taskApp').then(function (response) {
-	      return response.json();
-	    }).then(function (json) {
-	      return dispatch(receiveAppData(json.taskApp[0].taskApp));
-	    });
-	  };
-	}
-
-	function postAppData() {
-	  var state = _store2.default.getState();
-	  var appData = { taskApp: { taskApp: state } };
-
-	  return function (dispatch) {
-	    return fetch(baseURL + '/taskApp', {
-	      method: "POST",
-	      body: (0, _stringify2.default)({
-	        taskApp: { taskApp: state }
-	      }),
-	      headers: new Headers({
-	        'Content-Type': 'application/json'
-	      })
-	    }).then(function (response) {
-	      return response.json();
-	    }).then(function (json) {
-	      return dispatch(receiveAppData(json.taskApp.taskApp));
-	    });
+	    dispatch(editTaskObjective(id, newObjective));
+	    dispatch(postTaskList());
 	  };
 	}
 
@@ -23461,353 +23471,13 @@ webpackJsonp([1],[
 /* 371 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* REACT HOT LOADER */ if (false) { (function () { var ReactHotAPI = require("/Users/purezen_/workspace/story-app/node_modules/react-hot-api/modules/index.js"), RootInstanceProvider = require("/Users/purezen_/workspace/story-app/node_modules/react-hot-loader/RootInstanceProvider.js"), ReactMount = require("react/lib/ReactMount"), React = require("react"); module.makeHot = module.hot.data ? module.hot.data.makeHot : ReactHotAPI(function () { return RootInstanceProvider.getRootInstances(ReactMount); }, React); })(); } try { (function () {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _redux = __webpack_require__(212);
-
-	var _reduxThunk = __webpack_require__(372);
-
-	var _reduxThunk2 = _interopRequireDefault(_reduxThunk);
-
-	var _reducers = __webpack_require__(373);
-
-	var _reducers2 = _interopRequireDefault(_reducers);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	var store = (0, _redux.createStore)(_reducers2.default, (0, _redux.applyMiddleware)(_reduxThunk2.default));
-
-	exports.default = store;
-
-	/* REACT HOT LOADER */ }).call(this); } finally { if (false) { (function () { var foundReactClasses = module.hot.data && module.hot.data.foundReactClasses || false; if (module.exports && module.makeHot) { var makeExportsHot = require("/Users/purezen_/workspace/story-app/node_modules/react-hot-loader/makeExportsHot.js"); if (makeExportsHot(module, require("react"))) { foundReactClasses = true; } var shouldAcceptModule = true && foundReactClasses; if (shouldAcceptModule) { module.hot.accept(function (err) { if (err) { console.error("Cannot not apply hot update to " + "index.js" + ": " + err.message); } }); } } module.hot.dispose(function (data) { data.makeHot = module.makeHot; data.foundReactClasses = foundReactClasses; }); })(); } }
-
-/***/ },
-/* 372 */
-/***/ function(module, exports) {
-
-	'use strict';
-
-	exports.__esModule = true;
-	function createThunkMiddleware(extraArgument) {
-	  return function (_ref) {
-	    var dispatch = _ref.dispatch;
-	    var getState = _ref.getState;
-	    return function (next) {
-	      return function (action) {
-	        if (typeof action === 'function') {
-	          return action(dispatch, getState, extraArgument);
-	        }
-
-	        return next(action);
-	      };
-	    };
-	  };
-	}
-
-	var thunk = createThunkMiddleware();
-	thunk.withExtraArgument = createThunkMiddleware;
-
-	exports['default'] = thunk;
-
-/***/ },
-/* 373 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* REACT HOT LOADER */ if (false) { (function () { var ReactHotAPI = require("/Users/purezen_/workspace/story-app/node_modules/react-hot-api/modules/index.js"), RootInstanceProvider = require("/Users/purezen_/workspace/story-app/node_modules/react-hot-loader/RootInstanceProvider.js"), ReactMount = require("react/lib/ReactMount"), React = require("react"); module.makeHot = module.hot.data ? module.hot.data.makeHot : ReactHotAPI(function () { return RootInstanceProvider.getRootInstances(ReactMount); }, React); })(); } try { (function () {
-
-	"use strict";
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _defineProperty2 = __webpack_require__(374);
-
-	var _defineProperty3 = _interopRequireDefault(_defineProperty2);
-
-	var _immutabilityHelper = __webpack_require__(375);
-
-	var _immutabilityHelper2 = _interopRequireDefault(_immutabilityHelper);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	// TODO: If this is not needed, it is a nuisance
-	var initialState = {
-	  "tasksById": {
-	    "1": { "id": "1", "latestObjective": "lol.. data is loading", "objectiveHistory": ["lol.. data is loading"], "subtaskIds": [] }
-	  },
-	  "selectedTaskId": "1"
-	};
-
-	var eachTask = function eachTask(state, action) {
-	  switch (action.type) {
-	    case 'ADD_TASK':
-	      return {
-	        id: action.id,
-	        latestObjective: action.objective,
-	        objectiveHistory: [action.objective],
-	        subtaskIds: []
-	      };
-	    default:
-	      return state;
-	  }
-	};
-
-	var taskApp = function taskApp() {
-	  var _tasksById2;
-
-	  var state = arguments.length <= 0 || arguments[0] === undefined ? initialState : arguments[0];
-	  var action = arguments[1];
-
-	  switch (action.type) {
-	    case 'RECEIVE_DATA':
-	      return (0, _immutabilityHelper2.default)(state, { $set: action.taskApp });
-	    case 'EXPAND_TASK':
-	      return (0, _immutabilityHelper2.default)(state, { selectedTaskId: { $set: action.id } });
-	    case 'EDIT_TASK_OBJECTIVE':
-	      // objectiveHistory has to be taken care of
-	      return (0, _immutabilityHelper2.default)(state, {
-	        tasksById: (0, _defineProperty3.default)({}, action.id, { latestObjective: { $set: action.newObjective } })
-	      });
-	    case 'ADD_TASK':
-	      var id = action.id;
-	      var objective = action.objective;
-	      var parentTaskId = action.parentTaskId;
-	      // this call sets the new object and also updates the parent task
-
-	      return (0, _immutabilityHelper2.default)(state, {
-	        tasksById: (_tasksById2 = {}, (0, _defineProperty3.default)(_tasksById2, id, { $set: eachTask(undefined, action) }), (0, _defineProperty3.default)(_tasksById2, parentTaskId, { subtaskIds: { $push: [String(id)] } }), _tasksById2)
-	      });
-	    default:
-	      return state;
-	  }
-	};
-
-	exports.default = taskApp;
-
-	/* REACT HOT LOADER */ }).call(this); } finally { if (false) { (function () { var foundReactClasses = module.hot.data && module.hot.data.foundReactClasses || false; if (module.exports && module.makeHot) { var makeExportsHot = require("/Users/purezen_/workspace/story-app/node_modules/react-hot-loader/makeExportsHot.js"); if (makeExportsHot(module, require("react"))) { foundReactClasses = true; } var shouldAcceptModule = true && foundReactClasses; if (shouldAcceptModule) { module.hot.accept(function (err) { if (err) { console.error("Cannot not apply hot update to " + "index.js" + ": " + err.message); } }); } } module.hot.dispose(function (data) { data.makeHot = module.makeHot; data.foundReactClasses = foundReactClasses; }); })(); } }
-
-/***/ },
-/* 374 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-
-	exports.__esModule = true;
-
-	var _defineProperty = __webpack_require__(260);
-
-	var _defineProperty2 = _interopRequireDefault(_defineProperty);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	exports.default = function (obj, key, value) {
-	  if (key in obj) {
-	    (0, _defineProperty2.default)(obj, key, {
-	      value: value,
-	      enumerable: true,
-	      configurable: true,
-	      writable: true
-	    });
-	  } else {
-	    obj[key] = value;
-	  }
-
-	  return obj;
-	};
-
-/***/ },
-/* 375 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var invariant = __webpack_require__(228);
-
-	var hasOwnProperty = Object.prototype.hasOwnProperty;
-	var splice = Array.prototype.splice;
-
-	function assign(target, source) {
-	  for (var key in source) {
-	    if (hasOwnProperty.call(source, key)) {
-	      target[key] = source[key];
-	    }
-	  }
-	  return target;
-	}
-
-	function copy(object) {
-	  if (object instanceof Array) {
-	    return object.slice();
-	  } else if (object && typeof object === 'object') {
-	    return assign(new object.constructor(), object);
-	  } else {
-	    return object;
-	  }
-	}
-
-
-	function newContext() {
-	  var commands = assign({}, defaultCommands);
-	  update.extend = function(directive, fn) {
-	    commands[directive] = fn;
-	  }
-
-	  return update;
-
-	  function update(object, spec) {
-	    invariant(
-	      typeof spec === 'object',
-	      'update(): You provided a key path to update() that did not contain one ' +
-	      'of %s. Did you forget to include {%s: ...}?',
-	      Object.keys(commands).join(', '),
-	      '$set'
-	    );
-
-	    var newObject = object;
-	    for (var key in spec) {
-	      if (hasOwnProperty.call(commands, key)) {
-	        return commands[key](spec[key], newObject, spec, object);
-	      }
-	    }
-	    for (var key in spec) {
-	      var nextValueForKey = update(object[key], spec[key]);
-	      if (nextValueForKey === object[key]) {
-	        continue;
-	      }
-	      if (newObject === object) {
-	        newObject = copy(object);
-	      }
-	      newObject[key] = nextValueForKey;
-	    }
-	    return newObject;
-	  }
-
-	}
-
-	var defaultCommands = {
-	  $push: function(value, original, spec) {
-	    invariantPushAndUnshift(original, spec, '$push');
-	    return original.concat(value);
-	  },
-	  $unshift: function(value, original, spec) {
-	    invariantPushAndUnshift(original, spec, '$unshift');
-	    return value.concat(original);
-	  },
-	  $splice: function(value, newObject, spec, object) {
-	    var originalValue = newObject === object ? copy(object) : newObject;
-	    invariantSplices(originalValue, spec);
-	    value.forEach(function(args) {
-	      invariantSplice(args);
-	      splice.apply(originalValue, args);
-	    });
-	    return originalValue;
-	  },
-	  $set: function(value, original, spec) {
-	    invariantSet(spec);
-	    return value;
-	  },
-	  $merge: function(value, newObject, spec, object) {
-	    var originalValue = newObject === object ? copy(object) : newObject;
-	    invariantMerge(originalValue, value);
-	    Object.keys(value).forEach(function(key) {
-	      originalValue[key] = value[key];
-	    });
-	    return originalValue;
-	  },
-	  $apply: function(value, original) {
-	    invariantApply(value);
-	    return value(original);
-	  }
-	};
-
-
-
-	module.exports = newContext();
-	module.exports.newContext = newContext;
-
-
-	// invariants
-
-	function invariantPushAndUnshift(value, spec, command) {
-	  invariant(
-	    Array.isArray(value),
-	    'update(): expected target of %s to be an array; got %s.',
-	    command,
-	    value
-	  );
-	  var specValue = spec[command];
-	  invariant(
-	    Array.isArray(specValue),
-	    'update(): expected spec of %s to be an array; got %s. ' +
-	    'Did you forget to wrap your parameter in an array?',
-	    command,
-	    specValue
-	  );
-	}
-
-	function invariantSplices(value, spec) {
-	  invariant(
-	    Array.isArray(value),
-	    'Expected $splice target to be an array; got %s',
-	    value
-	  );
-	  invariantSplice(spec['$splice']);
-	}
-
-	function invariantSplice(value) {
-	  invariant(
-	    Array.isArray(value),
-	    'update(): expected spec of $splice to be an array of arrays; got %s. ' +
-	    'Did you forget to wrap your parameters in an array?',
-	    value
-	  );
-	}
-
-	function invariantApply(fn) {
-	  invariant(
-	    typeof fn === 'function',
-	    'update(): expected spec of $apply to be a function; got %s.',
-	    fn
-	  );
-	}
-
-	function invariantSet(spec) {
-	  invariant(
-	    Object.keys(spec).length === 1,
-	    'Cannot have more than one key in an object with $set'
-	  );
-	}
-
-	function invariantMerge(target, specValue) {
-	  invariant(
-	    specValue && typeof specValue === 'object',
-	    'update(): $merge expects a spec of type \'object\'; got %s',
-	    specValue
-	  );
-	  invariant(
-	    target && typeof target === 'object',
-	    'update(): $merge expects a target of type \'object\'; got %s',
-	    target
-	  );
-	}
-
-
-/***/ },
-/* 376 */
-/***/ function(module, exports, __webpack_require__) {
-
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 
 	// load the styles
-	var content = __webpack_require__(377);
+	var content = __webpack_require__(372);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
-	var update = __webpack_require__(379)(content, {});
+	var update = __webpack_require__(374)(content, {});
 	if(content.locals) module.exports = content.locals;
 	// Hot Module Replacement
 	if(false) {
@@ -23824,10 +23494,10 @@ webpackJsonp([1],[
 	}
 
 /***/ },
-/* 377 */
+/* 372 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(378)();
+	exports = module.exports = __webpack_require__(373)();
 	// imports
 
 
@@ -23840,7 +23510,7 @@ webpackJsonp([1],[
 	};
 
 /***/ },
-/* 378 */
+/* 373 */
 /***/ function(module, exports) {
 
 	/*
@@ -23896,7 +23566,7 @@ webpackJsonp([1],[
 
 
 /***/ },
-/* 379 */
+/* 374 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
@@ -24148,6 +23818,346 @@ webpackJsonp([1],[
 
 
 /***/ },
+/* 375 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* REACT HOT LOADER */ if (false) { (function () { var ReactHotAPI = require("/Users/purezen_/workspace/story-app/node_modules/react-hot-api/modules/index.js"), RootInstanceProvider = require("/Users/purezen_/workspace/story-app/node_modules/react-hot-loader/RootInstanceProvider.js"), ReactMount = require("react/lib/ReactMount"), React = require("react"); module.makeHot = module.hot.data ? module.hot.data.makeHot : ReactHotAPI(function () { return RootInstanceProvider.getRootInstances(ReactMount); }, React); })(); } try { (function () {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _redux = __webpack_require__(212);
+
+	var _reduxThunk = __webpack_require__(376);
+
+	var _reduxThunk2 = _interopRequireDefault(_reduxThunk);
+
+	var _reducers = __webpack_require__(377);
+
+	var _reducers2 = _interopRequireDefault(_reducers);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var store = (0, _redux.createStore)(_reducers2.default, (0, _redux.applyMiddleware)(_reduxThunk2.default));
+
+	exports.default = store;
+
+	/* REACT HOT LOADER */ }).call(this); } finally { if (false) { (function () { var foundReactClasses = module.hot.data && module.hot.data.foundReactClasses || false; if (module.exports && module.makeHot) { var makeExportsHot = require("/Users/purezen_/workspace/story-app/node_modules/react-hot-loader/makeExportsHot.js"); if (makeExportsHot(module, require("react"))) { foundReactClasses = true; } var shouldAcceptModule = true && foundReactClasses; if (shouldAcceptModule) { module.hot.accept(function (err) { if (err) { console.error("Cannot not apply hot update to " + "index.js" + ": " + err.message); } }); } } module.hot.dispose(function (data) { data.makeHot = module.makeHot; data.foundReactClasses = foundReactClasses; }); })(); } }
+
+/***/ },
+/* 376 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	exports.__esModule = true;
+	function createThunkMiddleware(extraArgument) {
+	  return function (_ref) {
+	    var dispatch = _ref.dispatch;
+	    var getState = _ref.getState;
+	    return function (next) {
+	      return function (action) {
+	        if (typeof action === 'function') {
+	          return action(dispatch, getState, extraArgument);
+	        }
+
+	        return next(action);
+	      };
+	    };
+	  };
+	}
+
+	var thunk = createThunkMiddleware();
+	thunk.withExtraArgument = createThunkMiddleware;
+
+	exports['default'] = thunk;
+
+/***/ },
+/* 377 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* REACT HOT LOADER */ if (false) { (function () { var ReactHotAPI = require("/Users/purezen_/workspace/story-app/node_modules/react-hot-api/modules/index.js"), RootInstanceProvider = require("/Users/purezen_/workspace/story-app/node_modules/react-hot-loader/RootInstanceProvider.js"), ReactMount = require("react/lib/ReactMount"), React = require("react"); module.makeHot = module.hot.data ? module.hot.data.makeHot : ReactHotAPI(function () { return RootInstanceProvider.getRootInstances(ReactMount); }, React); })(); } try { (function () {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _defineProperty2 = __webpack_require__(378);
+
+	var _defineProperty3 = _interopRequireDefault(_defineProperty2);
+
+	var _immutabilityHelper = __webpack_require__(379);
+
+	var _immutabilityHelper2 = _interopRequireDefault(_immutabilityHelper);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	// TODO: If this is not needed, it is a nuisance
+	var initialState = {
+	  "tasksById": {
+	    "1": { "id": "1", "latestObjective": "lol.. data is loading", "objectiveHistory": ["lol.. data is loading"], "subtaskIds": [] }
+	  },
+	  "selectedTaskId": "1"
+	};
+
+	var eachTask = function eachTask(state, action) {
+	  switch (action.type) {
+	    case 'ADD_TASK':
+	      return {
+	        id: action.id,
+	        latestObjective: action.objective,
+	        objectiveHistory: [action.objective],
+	        subtaskIds: []
+	      };
+	    default:
+	      return state;
+	  }
+	};
+
+	var taskApp = function taskApp() {
+	  var _tasksById2;
+
+	  var state = arguments.length <= 0 || arguments[0] === undefined ? initialState : arguments[0];
+	  var action = arguments[1];
+
+	  switch (action.type) {
+	    case 'RECEIVE_DATA':
+	      return (0, _immutabilityHelper2.default)(state, { tasksById: { $set: action.taskList } });
+	    case 'EXPAND_TASK':
+	      return (0, _immutabilityHelper2.default)(state, { selectedTaskId: { $set: action.id } });
+	    case 'EDIT_TASK_OBJECTIVE':
+	      // objectiveHistory has to be taken care of
+	      return (0, _immutabilityHelper2.default)(state, {
+	        tasksById: (0, _defineProperty3.default)({}, action.id, { latestObjective: { $set: action.newObjective } })
+	      });
+	    case 'ADD_TASK':
+	      var id = action.id;
+	      var objective = action.objective;
+	      var parentTaskId = action.parentTaskId;
+	      // this call sets the new object and also updates the parent task
+
+	      return (0, _immutabilityHelper2.default)(state, {
+	        tasksById: (_tasksById2 = {}, (0, _defineProperty3.default)(_tasksById2, id, { $set: eachTask(undefined, action) }), (0, _defineProperty3.default)(_tasksById2, parentTaskId, { subtaskIds: { $push: [String(id)] } }), _tasksById2)
+	      });
+	    default:
+	      return state;
+	  }
+	};
+
+	exports.default = taskApp;
+
+	/* REACT HOT LOADER */ }).call(this); } finally { if (false) { (function () { var foundReactClasses = module.hot.data && module.hot.data.foundReactClasses || false; if (module.exports && module.makeHot) { var makeExportsHot = require("/Users/purezen_/workspace/story-app/node_modules/react-hot-loader/makeExportsHot.js"); if (makeExportsHot(module, require("react"))) { foundReactClasses = true; } var shouldAcceptModule = true && foundReactClasses; if (shouldAcceptModule) { module.hot.accept(function (err) { if (err) { console.error("Cannot not apply hot update to " + "index.js" + ": " + err.message); } }); } } module.hot.dispose(function (data) { data.makeHot = module.makeHot; data.foundReactClasses = foundReactClasses; }); })(); } }
+
+/***/ },
+/* 378 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	exports.__esModule = true;
+
+	var _defineProperty = __webpack_require__(260);
+
+	var _defineProperty2 = _interopRequireDefault(_defineProperty);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	exports.default = function (obj, key, value) {
+	  if (key in obj) {
+	    (0, _defineProperty2.default)(obj, key, {
+	      value: value,
+	      enumerable: true,
+	      configurable: true,
+	      writable: true
+	    });
+	  } else {
+	    obj[key] = value;
+	  }
+
+	  return obj;
+	};
+
+/***/ },
+/* 379 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var invariant = __webpack_require__(228);
+
+	var hasOwnProperty = Object.prototype.hasOwnProperty;
+	var splice = Array.prototype.splice;
+
+	function assign(target, source) {
+	  for (var key in source) {
+	    if (hasOwnProperty.call(source, key)) {
+	      target[key] = source[key];
+	    }
+	  }
+	  return target;
+	}
+
+	function copy(object) {
+	  if (object instanceof Array) {
+	    return object.slice();
+	  } else if (object && typeof object === 'object') {
+	    return assign(new object.constructor(), object);
+	  } else {
+	    return object;
+	  }
+	}
+
+
+	function newContext() {
+	  var commands = assign({}, defaultCommands);
+	  update.extend = function(directive, fn) {
+	    commands[directive] = fn;
+	  }
+
+	  return update;
+
+	  function update(object, spec) {
+	    invariant(
+	      typeof spec === 'object',
+	      'update(): You provided a key path to update() that did not contain one ' +
+	      'of %s. Did you forget to include {%s: ...}?',
+	      Object.keys(commands).join(', '),
+	      '$set'
+	    );
+
+	    var newObject = object;
+	    for (var key in spec) {
+	      if (hasOwnProperty.call(commands, key)) {
+	        return commands[key](spec[key], newObject, spec, object);
+	      }
+	    }
+	    for (var key in spec) {
+	      var nextValueForKey = update(object[key], spec[key]);
+	      if (nextValueForKey === object[key]) {
+	        continue;
+	      }
+	      if (newObject === object) {
+	        newObject = copy(object);
+	      }
+	      newObject[key] = nextValueForKey;
+	    }
+	    return newObject;
+	  }
+
+	}
+
+	var defaultCommands = {
+	  $push: function(value, original, spec) {
+	    invariantPushAndUnshift(original, spec, '$push');
+	    return original.concat(value);
+	  },
+	  $unshift: function(value, original, spec) {
+	    invariantPushAndUnshift(original, spec, '$unshift');
+	    return value.concat(original);
+	  },
+	  $splice: function(value, newObject, spec, object) {
+	    var originalValue = newObject === object ? copy(object) : newObject;
+	    invariantSplices(originalValue, spec);
+	    value.forEach(function(args) {
+	      invariantSplice(args);
+	      splice.apply(originalValue, args);
+	    });
+	    return originalValue;
+	  },
+	  $set: function(value, original, spec) {
+	    invariantSet(spec);
+	    return value;
+	  },
+	  $merge: function(value, newObject, spec, object) {
+	    var originalValue = newObject === object ? copy(object) : newObject;
+	    invariantMerge(originalValue, value);
+	    Object.keys(value).forEach(function(key) {
+	      originalValue[key] = value[key];
+	    });
+	    return originalValue;
+	  },
+	  $apply: function(value, original) {
+	    invariantApply(value);
+	    return value(original);
+	  }
+	};
+
+
+
+	module.exports = newContext();
+	module.exports.newContext = newContext;
+
+
+	// invariants
+
+	function invariantPushAndUnshift(value, spec, command) {
+	  invariant(
+	    Array.isArray(value),
+	    'update(): expected target of %s to be an array; got %s.',
+	    command,
+	    value
+	  );
+	  var specValue = spec[command];
+	  invariant(
+	    Array.isArray(specValue),
+	    'update(): expected spec of %s to be an array; got %s. ' +
+	    'Did you forget to wrap your parameter in an array?',
+	    command,
+	    specValue
+	  );
+	}
+
+	function invariantSplices(value, spec) {
+	  invariant(
+	    Array.isArray(value),
+	    'Expected $splice target to be an array; got %s',
+	    value
+	  );
+	  invariantSplice(spec['$splice']);
+	}
+
+	function invariantSplice(value) {
+	  invariant(
+	    Array.isArray(value),
+	    'update(): expected spec of $splice to be an array of arrays; got %s. ' +
+	    'Did you forget to wrap your parameters in an array?',
+	    value
+	  );
+	}
+
+	function invariantApply(fn) {
+	  invariant(
+	    typeof fn === 'function',
+	    'update(): expected spec of $apply to be a function; got %s.',
+	    fn
+	  );
+	}
+
+	function invariantSet(spec) {
+	  invariant(
+	    Object.keys(spec).length === 1,
+	    'Cannot have more than one key in an object with $set'
+	  );
+	}
+
+	function invariantMerge(target, specValue) {
+	  invariant(
+	    specValue && typeof specValue === 'object',
+	    'update(): $merge expects a spec of type \'object\'; got %s',
+	    specValue
+	  );
+	  invariant(
+	    target && typeof target === 'object',
+	    'update(): $merge expects a target of type \'object\'; got %s',
+	    target
+	  );
+	}
+
+
+/***/ },
 /* 380 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -24157,7 +24167,7 @@ webpackJsonp([1],[
 	var content = __webpack_require__(381);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
-	var update = __webpack_require__(379)(content, {});
+	var update = __webpack_require__(374)(content, {});
 	if(content.locals) module.exports = content.locals;
 	// Hot Module Replacement
 	if(false) {
@@ -24177,7 +24187,7 @@ webpackJsonp([1],[
 /* 381 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(378)();
+	exports = module.exports = __webpack_require__(373)();
 	// imports
 
 
