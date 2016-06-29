@@ -1807,27 +1807,33 @@ webpackJsonp([1],[
 
 	var _actions = __webpack_require__(368);
 
+	var a = _interopRequireWildcard(_actions);
+
+	var _lodash = __webpack_require__(366);
+
+	var _lodash2 = _interopRequireDefault(_lodash);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	// TODO: find how to make paths relative to client/ using webpack
+
 
 	var getCurrentTasks = function getCurrentTasks(tasks, currentTaskId) {
 	  var mainTask = tasks[currentTaskId];
 	  var subtasks = [];
 
 	  // populating subtasks
-	  // TODO: this can be improved
-	  // try finding something like each from lodash
-	  for (var taskId in tasks) {
+	  // TODO: this can be improved.. try finding something like each from lodash
+	  _lodash2.default.forEach(tasks, function (task, taskId) {
 	    if (mainTask.subtaskIds.includes(taskId)) {
 	      subtasks.push(tasks[taskId]);
 	    }
-	  }
+	  });
 
 	  return { mainTask: mainTask, subtasks: subtasks };
 	};
-	// improve this call using *
-
 
 	var mapStateToProps = function mapStateToProps(state) {
 	  return {
@@ -1838,16 +1844,16 @@ webpackJsonp([1],[
 	var mapDispatchToProps = function mapDispatchToProps(dispatch) {
 	  return {
 	    onTaskClick: function onTaskClick(id) {
-	      dispatch((0, _actions.expandTask)(id));
+	      dispatch(a.expandTask(id));
 	    },
 	    onTaskAdd: function onTaskAdd(parentTaskId, objective) {
-	      dispatch((0, _actions.addTaskAndPostData)(parentTaskId, objective));
+	      dispatch(a.addTaskAndPostData(parentTaskId, objective));
 	    },
 	    onTaskObjectiveEdit: function onTaskObjectiveEdit(id, objective) {
-	      dispatch((0, _actions.editTaskObjectiveAndPostData)(id, objective));
+	      dispatch(a.editTaskObjectiveAndPostData(id, objective));
 	    },
 	    onAppLoad: function onAppLoad() {
-	      dispatch((0, _actions.loadTaskList)());
+	      dispatch(a.loadTaskList());
 	    }
 	  };
 	};
@@ -1902,7 +1908,7 @@ webpackJsonp([1],[
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	// since the babel 'lodash' plugin is being
+	// NOTE: since the babel 'lodash' plugin is being
 	//  used, calls like _.merge will change import
 	//  to `import _ from 'lodash/merge'`
 
@@ -1915,16 +1921,8 @@ webpackJsonp([1],[
 	    var _this = (0, _possibleConstructorReturn3.default)(this, (0, _getPrototypeOf2.default)(TaskList).call(this, props));
 
 	    _this.state = {
-	      addChildTaskModalIsOpen: false,
-	      editTaskModalIsOpen: false,
-	      objectiveHistoryModalIsOpen: false,
-	      selectedTaskId: null,
-	      objectiveHistory: null,
-	      formData: {
-	        newTask: null,
-	        newChildTask: '',
-	        newObjective: ''
-	      }
+	      formData: {},
+	      modalOpenState: {}
 	    };
 	    // TODO: bind methods here
 	    return _this;
@@ -1935,50 +1933,42 @@ webpackJsonp([1],[
 	    value: function componentDidMount() {
 	      this.props.onAppLoad();
 	    }
+	  }, {
+	    key: 'toggleModal',
+	    value: function toggleModal(ref, arg) {
+	      var modalInfo = {};
+	      if (ref === 'objectiveHistory') {
+	        if (arg === null) {
+	          modalInfo.objectiveHistory = null;
+	        } else {
+	          var objectiveHistory = arg;
+	          var elements = objectiveHistory.reduce(function (a, b, ind) {
+	            return (ind === 1 ? "<div>" + a + "</div>" : a) + "<div>" + b + "</div>";
+	          });
 
-	    // someway to end this repitition ?
+	          modalInfo.objectiveHistory = elements;
+	        }
+	      } else {
+	        var taskId = arg;
+	        modalInfo.selectedTaskId = taskId;
+	      }
 
-	  }, {
-	    key: 'openAddChildTaskModal',
-	    value: function openAddChildTaskModal(taskId) {
-	      this.setState({ addChildTaskModalIsOpen: true, selectedTaskId: taskId });
-	    }
-	  }, {
-	    key: 'openEditTaskModal',
-	    value: function openEditTaskModal(taskId) {
-	      this.setState({ editTaskModalIsOpen: true, selectedTaskId: taskId });
-	    }
-	  }, {
-	    key: 'closeAddChildTaskModal',
-	    value: function closeAddChildTaskModal() {
-	      this.setState({ addChildTaskModalIsOpen: false, selectedTaskId: null });
-	    }
-	  }, {
-	    key: 'closeEditTaskModal',
-	    value: function closeEditTaskModal() {
-	      this.setState({ editTaskModalIsOpen: false, selectedTaskId: null });
-	    }
-	  }, {
-	    key: 'openObjectiveHistoryModal',
-	    value: function openObjectiveHistoryModal(objectiveHistory) {
-	      var elements = objectiveHistory.reduce(function (a, b, ind) {
-	        return (ind === 1 ? "<div>" + a + "</div>" : a) + "<div>" + b + "</div>";
-	      });
-	      this.setState({ objectiveHistoryModalIsOpen: true, objectiveHistory: elements });
-	    }
-	  }, {
-	    key: 'closeObjectiveHistoryModal',
-	    value: function closeObjectiveHistoryModal() {
-	      this.setState({ objectiveHistoryModalIsOpen: false, objectiveHistory: null });
+	      // NOTE: the containerObject is created so that modalOpenState object
+	      // can be referenced in the merge call
+	      var currentModalState = this.state.modalOpenState[ref];
+	      var containerObject = { modalOpenState: {} };
+	      containerObject.modalOpenState[ref] = _lodash2.default.isUndefined(currentModalState) ? true : !currentModalState;
+
+	      var updatedState = _lodash2.default.merge({}, this.state, modalInfo, containerObject);
+	      this.setState(updatedState);
 	    }
 	  }, {
 	    key: 'handleFormInputChange',
 	    value: function handleFormInputChange(e) {
-	      var initialState = this.state;
-	      var formStructure = { formData: {} };
-	      formStructure.formData[e.target.name] = e.target.value;
-	      var updatedState = _lodash2.default.merge({}, initialState, formStructure);
-	      this.setState(updatedState);
+	      var formContainer = { formData: {} };
+	      formContainer.formData[e.target.name] = e.target.value;
+
+	      this.setState(formContainer);
 	    }
 	  }, {
 	    key: 'handleAddTaskSubmit',
@@ -1986,10 +1976,11 @@ webpackJsonp([1],[
 	      e.preventDefault();
 	      var initialState = this.state;
 	      this.props.onTaskAdd(this.props.tasks.mainTask.id, initialState.formData['newTask']);
-	      var formStructure = { formData: {} };
-	      formStructure.formData['newTask'] = '';
-	      var updatedState = _lodash2.default.merge({}, initialState, formStructure);
-	      this.setState(updatedState);
+
+	      var formContainer = { formData: {} };
+	      formContainer.formData['newTask'] = '';
+
+	      this.setState(formContainer);
 	    }
 	  }, {
 	    key: 'handleAddChildTaskSubmit',
@@ -1997,10 +1988,11 @@ webpackJsonp([1],[
 	      e.preventDefault();
 	      var initialState = this.state;
 	      this.props.onTaskAdd(initialState.selectedTaskId, initialState.formData['newChildTask']);
-	      var formStructure = { formData: {} };
-	      formStructure.formData['newChildTask'] = '';
-	      var updatedState = _lodash2.default.merge({}, initialState, formStructure);
-	      this.setState(updatedState);
+
+	      var formContainer = { formData: {} };
+	      formContainer.formData['newChildTask'] = '';
+
+	      this.setState(formContainer);
 	    }
 	  }, {
 	    key: 'handleEditTaskSubmit',
@@ -2008,10 +2000,11 @@ webpackJsonp([1],[
 	      e.preventDefault();
 	      var initialState = this.state;
 	      this.props.onTaskObjectiveEdit(initialState.selectedTaskId, initialState.formData['newObjective']);
-	      var formStructure = { formData: {} };
-	      formStructure.formData['newObjective'] = '';
-	      var updatedState = _lodash2.default.merge({}, initialState, formStructure);
-	      this.setState(updatedState);
+
+	      var formContainer = { formData: {} };
+	      formContainer.formData['newObjective'] = '';
+
+	      this.setState(formContainer);
 	    }
 	  }, {
 	    key: 'render',
@@ -2026,10 +2019,11 @@ webpackJsonp([1],[
 	      var mainTask = tasks.mainTask;
 	      var subtasks = tasks.subtasks;
 
-	      // generate subTask for main task
+	      // NOTE: generates subTask for main task
 
 	      var taskList = [];
 	      var _classThis = this;
+	      // TODO: solve repotition using function binding??
 	      subtasks.forEach(function (t) {
 	        t.subtaskIds.length !== 0 ? taskList.push(_react2.default.createElement(
 	          _elemental.Card,
@@ -2044,7 +2038,7 @@ webpackJsonp([1],[
 	          _react2.default.createElement(
 	            _elemental.Button,
 	            { size: 'xs', href: '#', onClick: function onClick() {
-	                return _classThis.openAddChildTaskModal(t.id);
+	                return _classThis.toggleModal('addChildTask', t.id);
 	              } },
 	            'add child task'
 	          ),
@@ -2052,7 +2046,7 @@ webpackJsonp([1],[
 	          _react2.default.createElement(
 	            _elemental.Button,
 	            { size: 'xs', href: '#', onClick: function onClick() {
-	                return _classThis.openEditTaskModal(t.id);
+	                return _classThis.toggleModal('editTask', t.id);
 	              } },
 	            'edit task'
 	          ),
@@ -2060,7 +2054,7 @@ webpackJsonp([1],[
 	          _react2.default.createElement(
 	            _elemental.Button,
 	            { size: 'xs', href: '#', onClick: function onClick() {
-	                return _classThis.openObjectiveHistoryModal(t.objectiveHistory);
+	                return _classThis.toggleModal('objectiveHistory', t.objectiveHistory);
 	              } },
 	            'history'
 	          )
@@ -2075,7 +2069,7 @@ webpackJsonp([1],[
 	          _react2.default.createElement(
 	            _elemental.Button,
 	            { size: 'xs', href: '#', onClick: function onClick() {
-	                return _classThis.openAddChildTaskModal(t.id);
+	                return _classThis.toggleModal('addChildTask', t.id);
 	              } },
 	            'add child task'
 	          ),
@@ -2083,7 +2077,7 @@ webpackJsonp([1],[
 	          _react2.default.createElement(
 	            _elemental.Button,
 	            { size: 'xs', href: '#', onClick: function onClick() {
-	                return _classThis.openEditTaskModal(t.id);
+	                return _classThis.toggleModal('editTask', t.id);
 	              } },
 	            'edit task'
 	          ),
@@ -2091,7 +2085,7 @@ webpackJsonp([1],[
 	          _react2.default.createElement(
 	            _elemental.Button,
 	            { size: 'xs', href: '#', onClick: function onClick() {
-	                return _classThis.openObjectiveHistoryModal(t.objectiveHistory);
+	                return _classThis.toggleModal('objectiveHistory', t.objectiveHistory);
 	              } },
 	            'history'
 	          )
@@ -2146,9 +2140,9 @@ webpackJsonp([1],[
 	            taskList,
 	            _react2.default.createElement(
 	              _elemental.Modal,
-	              { isOpen: this.state.addChildTaskModalIsOpen },
+	              { isOpen: this.state.modalOpenState.addChildTask || false },
 	              _react2.default.createElement(_elemental.ModalHeader, { text: 'Add Child Task',
-	                onClose: this.closeAddChildTaskModal.bind(this),
+	                onClose: this.toggleModal.bind(this, 'addChildTask', null),
 	                showCloseButton: true }),
 	              _react2.default.createElement(
 	                _elemental.ModalBody,
@@ -2176,9 +2170,9 @@ webpackJsonp([1],[
 	            ),
 	            _react2.default.createElement(
 	              _elemental.Modal,
-	              { isOpen: this.state.editTaskModalIsOpen },
+	              { isOpen: this.state.modalOpenState.editTask || false },
 	              _react2.default.createElement(_elemental.ModalHeader, { text: 'Edit Task',
-	                onClose: this.closeEditTaskModal.bind(this),
+	                onClose: this.toggleModal.bind(this, 'editTask', null),
 	                showCloseButton: true }),
 	              _react2.default.createElement(
 	                _elemental.ModalBody,
@@ -2206,9 +2200,9 @@ webpackJsonp([1],[
 	            ),
 	            _react2.default.createElement(
 	              _elemental.Modal,
-	              { isOpen: this.state.objectiveHistoryModalIsOpen },
+	              { isOpen: this.state.modalOpenState.objectiveHistory || false },
 	              _react2.default.createElement(_elemental.ModalHeader, { text: 'Objective History',
-	                onClose: this.closeObjectiveHistoryModal.bind(this),
+	                onClose: this.toggleModal.bind(this, 'objectiveHistory', null),
 	                showCloseButton: true }),
 	              _react2.default.createElement(
 	                _elemental.ModalBody,
@@ -23362,8 +23356,6 @@ webpackJsonp([1],[
 	exports.loadTaskList = loadTaskList;
 	exports.postTaskList = postTaskList;
 	exports.expandTask = expandTask;
-	exports.addTask = addTask;
-	exports.editTaskObjective = editTaskObjective;
 	exports.addTaskAndPostData = addTaskAndPostData;
 	exports.editTaskObjectiveAndPostData = editTaskObjectiveAndPostData;
 
@@ -23416,6 +23408,7 @@ webpackJsonp([1],[
 	  };
 	}
 
+	// TODO: choose a smarter number sometime
 	var nextTaskId = 100;
 	function addTask(parentTaskId, objective) {
 	  return {
@@ -23931,7 +23924,7 @@ webpackJsonp([1],[
 	    case 'EXPAND_TASK':
 	      return (0, _immutabilityHelper2.default)(state, { selectedTaskId: { $set: action.id } });
 	    case 'EDIT_TASK_OBJECTIVE':
-	      // objectiveHistory has to be taken care of
+	      // TODO: objectiveHistory has to be taken care of
 	      return (0, _immutabilityHelper2.default)(state, {
 	        tasksById: (0, _defineProperty3.default)({}, action.id, { latestObjective: { $set: action.newObjective } })
 	      });
@@ -23939,7 +23932,7 @@ webpackJsonp([1],[
 	      var id = action.id;
 	      var objective = action.objective;
 	      var parentTaskId = action.parentTaskId;
-	      // this call sets the new object and also updates the parent task
+	      // NOTE: this call sets the new object and also updates the parent task
 
 	      return (0, _immutabilityHelper2.default)(state, {
 	        tasksById: (_tasksById2 = {}, (0, _defineProperty3.default)(_tasksById2, id, { $set: eachTask(undefined, action) }), (0, _defineProperty3.default)(_tasksById2, parentTaskId, { subtaskIds: { $push: [String(id)] } }), _tasksById2)
