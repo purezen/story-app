@@ -1789,9 +1789,6 @@ webpackJsonp([1],[
 
 	var mapDispatchToProps = function mapDispatchToProps(dispatch) {
 	  return {
-	    login: function login() {
-	      dispatch(a.login());
-	    },
 	    loadAuthToken: function loadAuthToken() {
 	      dispatch(a.loadAuthToken());
 	    }
@@ -1855,13 +1852,22 @@ webpackJsonp([1],[
 	  }
 
 	  (0, _createClass3.default)(App, [{
+	    key: 'componentWillMount',
+	    value: function componentWillMount() {
+	      this.props.loadAuthToken();
+	    }
+	  }, {
 	    key: 'render',
 	    value: function render() {
-	      if (localStorage.getItem('id_token')) {
+	      if (this.props.authToken) {
 	        return _react2.default.createElement(_TaskListContainer2.default, null);
 	      } else {
-	        this.props.loadAuthToken();
-	        return null;
+	        // Improve unauthorized page
+	        return _react2.default.createElement(
+	          'div',
+	          null,
+	          'Kindly login'
+	        );
 	      }
 	    }
 	  }]);
@@ -23446,11 +23452,10 @@ webpackJsonp([1],[
 
 	exports.loadTaskList = loadTaskList;
 	exports.postTaskList = postTaskList;
-	exports.login = login;
-	exports.loadAuthToken = loadAuthToken;
 	exports.expandTask = expandTask;
 	exports.addTaskAndPostData = addTaskAndPostData;
 	exports.editTaskObjectiveAndPostData = editTaskObjectiveAndPostData;
+	exports.loadAuthToken = loadAuthToken;
 
 	var _auth0Lock = __webpack_require__(372);
 
@@ -23458,11 +23463,13 @@ webpackJsonp([1],[
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	// TODO: Put these in some configuration
+	// TODO: Assign as a constant and then put in some configuration
 	var baseURL =  false ? 'http://localhost:5000' : 'https://pacific-inlet-73638.herokuapp.com';
 
-	// TODO: split actions in different files
+	// TODO: split actions under different categories headers
 
+	// **************************
+	// Base Task List actions
 	function receiveTaskList(taskList) {
 	  return {
 	    type: 'RECEIVE_DATA',
@@ -23507,50 +23514,8 @@ webpackJsonp([1],[
 	  };
 	}
 
-	function setAuthInStorage(authToken) {
-	  localStorage.setItem('id_token', authToken);
-	}
-
-	function setAuth(authToken) {
-	  return {
-	    type: 'SET_AUTH',
-	    token: authToken
-	  };
-	}
-
-	function attemptAuthFromServer(user_profile) {
-	  return function (dispatch) {
-	    return fetch(baseURL + '/auth', {
-	      method: "POST",
-	      body: (0, _stringify2.default)(user_profile),
-	      headers: new Headers({
-	        'Content-Type': 'application/json'
-	      })
-	    }).then(function (response) {
-	      return response.json();
-	    }).then(function (json) {
-	      dispatch(setAuth(json.token));
-	      dispatch(setAuthInStorage(json.token));
-	    });
-	  };
-	}
-
-	function login() {
-	  var lock = new _auth0Lock2.default('MhNi1b06sjwogCWGuCpBKQC9sUe8ppGt', 'purezen.auth0.com');
-	  return function (dispatch) {
-	    lock.show(function (err, profile, token) {
-	      dispatch(attemptAuthFromServer(profile));
-	    });
-	  };
-	}
-
-	function loadAuthToken() {
-	  return function (dispatch) {
-	    var authToken = localStorage.getItem('id_token');
-	    dispatch(setAuth(authToken));
-	  };
-	}
-
+	// ***************************
+	// Individual task actions
 	function expandTask(id) {
 	  return {
 	    type: 'EXPAND_TASK',
@@ -23590,6 +23555,60 @@ webpackJsonp([1],[
 	    dispatch(editTaskObjective(id, newObjective));
 	    dispatch(postTaskList());
 	  };
+	}
+
+	// ***********************
+	// Authentication actions
+	function setAuthInStorage(authToken) {
+	  return function (dispatch) {
+	    localStorage.setItem('auth_token', authToken);
+	  };
+	}
+
+	function setAuthInState(authToken) {
+	  return {
+	    type: 'SET_AUTH',
+	    token: authToken
+	  };
+	}
+
+	function attemptAuthFromServer(user_profile) {
+	  return function (dispatch) {
+	    return fetch(baseURL + '/auth', {
+	      method: "POST",
+	      body: (0, _stringify2.default)(user_profile),
+	      headers: new Headers({
+	        'Content-Type': 'application/json'
+	      })
+	    }).then(function (response) {
+	      return response.json();
+	    }).then(function (json) {
+	      dispatch(setAuthInState(json.token));
+	      dispatch(setAuthInStorage(json.token));
+	    });
+	  };
+	}
+
+	// TODO: Put these in some constants
+	function login() {
+	  var lock = new _auth0Lock2.default('MhNi1b06sjwogCWGuCpBKQC9sUe8ppGt', 'purezen.auth0.com');
+	  return function (dispatch) {
+	    lock.show(function (err, profile, token) {
+	      dispatch(attemptAuthFromServer(profile));
+	    });
+	  };
+	}
+
+	function loadAuthToken() {
+	  if (localStorage.getItem('auth_token')) {
+	    return function (dispatch) {
+	      dispatch(setAuthInState(localStorage.getItem('auth_token')));
+	    };
+	  } else {
+	    return function (dispatch) {
+	      dispatch(login());
+	    };
+	  }
 	}
 
 	/* REACT HOT LOADER */ }).call(this); } finally { if (false) { (function () { var foundReactClasses = module.hot.data && module.hot.data.foundReactClasses || false; if (module.exports && module.makeHot) { var makeExportsHot = require("/Users/purezen_/workspace/story-app/node_modules/react-hot-loader/makeExportsHot.js"); if (makeExportsHot(module, require("react"))) { foundReactClasses = true; } var shouldAcceptModule = true && foundReactClasses; if (shouldAcceptModule) { module.hot.accept(function (err) { if (err) { console.error("Cannot not apply hot update to " + "index.js" + ": " + err.message); } }); } } module.hot.dispose(function (data) { data.makeHot = module.makeHot; data.foundReactClasses = foundReactClasses; }); })(); } }
