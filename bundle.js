@@ -3686,10 +3686,15 @@ webpackJsonp([1],[
 	        _react2.default.createElement(
 	          _elemental.Row,
 	          null,
-	          _react2.default.createElement(_elemental.Col, { sm: '1/4' }),
+	          ' '
+	        ),
+	        _react2.default.createElement(
+	          _elemental.Row,
+	          null,
+	          _react2.default.createElement(_elemental.Col, { sm: '1/8', md: '1/4' }),
 	          _react2.default.createElement(
 	            _elemental.Col,
-	            { sm: '2/4' },
+	            { xs: '100%', sm: '6/8', md: '2/4' },
 	            _react2.default.createElement(
 	              _elemental.Card,
 	              null,
@@ -3799,7 +3804,12 @@ webpackJsonp([1],[
 	              )
 	            )
 	          ),
-	          _react2.default.createElement(_elemental.Col, { sm: '1/4' })
+	          _react2.default.createElement(_elemental.Col, { sm: '1/8', md: '1/4' })
+	        ),
+	        _react2.default.createElement(
+	          _elemental.Row,
+	          null,
+	          ' '
 	        )
 	      );
 	    }
