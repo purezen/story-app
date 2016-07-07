@@ -23593,7 +23593,9 @@ webpackJsonp([1],[
 	function login() {
 	  var lock = new _auth0Lock2.default('MhNi1b06sjwogCWGuCpBKQC9sUe8ppGt', 'purezen.auth0.com');
 	  return function (dispatch) {
-	    lock.show(function (err, profile, token) {
+	    lock.show({
+	      popup: true
+	    }, function (err, profile, token) {
 	      dispatch(attemptAuthFromServer(profile));
 	    });
 	  };
