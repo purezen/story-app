@@ -1784,13 +1784,22 @@ webpackJsonp([1],[
 
 
 	var mapStateToProps = function mapStateToProps(state) {
-	  return { authToken: state.authToken };
+	  return {
+	    authToken: state.authToken,
+	    loading: state.spinner
+	  };
 	};
 
 	var mapDispatchToProps = function mapDispatchToProps(dispatch) {
 	  return {
 	    loadAuthToken: function loadAuthToken() {
 	      dispatch(a.loadAuthToken());
+	    },
+	    startSpinner: function startSpinner() {
+	      dispatch(a.startSpinner());
+	    },
+	    stopSpinner: function stopSpinner() {
+	      dispatch(a.stopSpinner());
 	    }
 	  };
 	};
@@ -1837,7 +1846,9 @@ webpackJsonp([1],[
 
 	var _react2 = _interopRequireDefault(_react);
 
-	var _TaskListContainer = __webpack_require__(313);
+	var _elemental = __webpack_require__(313);
+
+	var _TaskListContainer = __webpack_require__(365);
 
 	var _TaskListContainer2 = _interopRequireDefault(_TaskListContainer);
 
@@ -1852,21 +1863,76 @@ webpackJsonp([1],[
 	  }
 
 	  (0, _createClass3.default)(App, [{
-	    key: 'componentWillMount',
-	    value: function componentWillMount() {
-	      this.props.loadAuthToken();
+	    key: 'componentDidMount',
+	    value: function componentDidMount() {
+	      var _this2 = this;
+
+	      this.props.startSpinner();
+	      setTimeout(function () {
+	        _this2.props.stopSpinner();
+	        _this2.props.loadAuthToken();
+	      }, 2000);
 	    }
 	  }, {
 	    key: 'render',
 	    value: function render() {
-	      if (this.props.authToken) {
-	        return _react2.default.createElement(_TaskListContainer2.default, null);
+	      var style = {
+	        spinnerContainer: {
+	          width: "100%",
+	          height: "100%",
+	          display: "inline-block"
+	        },
+	        verticalAlign: {
+	          marginTop: "30%",
+	          verticalAlign: "middle",
+	          textAlign: "center"
+	        }
+	      };
+	      if (this.props.loading) {
+	        return _react2.default.createElement(
+	          _elemental.Container,
+	          null,
+	          _react2.default.createElement(
+	            'div',
+	            { style: style.spinnerContainer },
+	            _react2.default.createElement(
+	              'div',
+	              { style: style.verticalAlign },
+	              _react2.default.createElement(_elemental.Spinner, { size: 'lg' })
+	            )
+	          )
+	        );
 	      } else {
-	        // Improve unauthorized page
+	        var contentToRender = this.props.authToken ? _react2.default.createElement(_TaskListContainer2.default, null) : 'Kindly reload and login';
+
 	        return _react2.default.createElement(
 	          'div',
 	          null,
-	          'Kindly login'
+	          _react2.default.createElement(
+	            _elemental.Container,
+	            null,
+	            _react2.default.createElement(
+	              _elemental.Row,
+	              null,
+	              ' '
+	            ),
+	            _react2.default.createElement(
+	              _elemental.Row,
+	              null,
+	              _react2.default.createElement(_elemental.Col, { sm: '1/8', md: '1/4' }),
+	              _react2.default.createElement(
+	                _elemental.Col,
+	                { xs: '100%', sm: '6/8', md: '2/4' },
+	                contentToRender
+	              ),
+	              _react2.default.createElement(_elemental.Col, { sm: '1/8', md: '1/4' })
+	            ),
+	            _react2.default.createElement(
+	              _elemental.Row,
+	              null,
+	              ' '
+	            )
+	          )
 	        );
 	      }
 	    }
@@ -3373,507 +3439,55 @@ webpackJsonp([1],[
 /* 313 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* REACT HOT LOADER */ if (false) { (function () { var ReactHotAPI = require("/Users/purezen_/workspace/story-app/node_modules/react-hot-api/modules/index.js"), RootInstanceProvider = require("/Users/purezen_/workspace/story-app/node_modules/react-hot-loader/RootInstanceProvider.js"), ReactMount = require("react/lib/ReactMount"), React = require("react"); module.makeHot = module.hot.data ? module.hot.data.makeHot : ReactHotAPI(function () { return RootInstanceProvider.getRootInstances(ReactMount); }, React); })(); } try { (function () {
-
 	'use strict';
 
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _reactRedux = __webpack_require__(206);
-
-	var _TaskList = __webpack_require__(314);
-
-	var _TaskList2 = _interopRequireDefault(_TaskList);
-
-	var _actions = __webpack_require__(369);
-
-	var a = _interopRequireWildcard(_actions);
-
-	var _lodash = __webpack_require__(367);
-
-	var _lodash2 = _interopRequireDefault(_lodash);
-
-	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	// TODO: find how to make paths relative to client/ using webpack
-
-
-	var getCurrentTasks = function getCurrentTasks(tasks, currentTaskId) {
-	  var mainTask = tasks[currentTaskId];
-	  var subtasks = [];
-
-	  // populating subtasks
-	  // TODO: this can be improved.. try finding something like each from lodash
-	  _lodash2.default.forEach(tasks, function (task, taskId) {
-	    if (mainTask.subtaskIds.includes(taskId)) {
-	      subtasks.push(tasks[taskId]);
-	    }
-	  });
-
-	  return { mainTask: mainTask, subtasks: subtasks };
-	};
-
-	var mapStateToProps = function mapStateToProps(state) {
-	  return {
-	    tasks: getCurrentTasks(state.tasksById, state.selectedTaskId)
-	  };
-	};
-
-	var mapDispatchToProps = function mapDispatchToProps(dispatch) {
-	  return {
-	    onTaskClick: function onTaskClick(id) {
-	      dispatch(a.expandTask(id));
-	    },
-	    onTaskAdd: function onTaskAdd(parentTaskId, objective) {
-	      dispatch(a.addTaskAndPostData(parentTaskId, objective));
-	    },
-	    onTaskObjectiveEdit: function onTaskObjectiveEdit(id, objective) {
-	      dispatch(a.editTaskObjectiveAndPostData(id, objective));
-	    },
-	    onAppLoad: function onAppLoad() {
-	      dispatch(a.loadTaskList());
-	    },
-	    makeAuthRequest: function makeAuthRequest() {
-	      dispatch(a.makeAuthRequest());
-	    }
-	  };
-	};
-
-	var TaskListContainer = (0, _reactRedux.connect)(mapStateToProps, mapDispatchToProps)(_TaskList2.default);
-
-	exports.default = TaskListContainer;
-
-	/* REACT HOT LOADER */ }).call(this); } finally { if (false) { (function () { var foundReactClasses = module.hot.data && module.hot.data.foundReactClasses || false; if (module.exports && module.makeHot) { var makeExportsHot = require("/Users/purezen_/workspace/story-app/node_modules/react-hot-loader/makeExportsHot.js"); if (makeExportsHot(module, require("react"))) { foundReactClasses = true; } var shouldAcceptModule = true && foundReactClasses; if (shouldAcceptModule) { module.hot.accept(function (err) { if (err) { console.error("Cannot not apply hot update to " + "TaskListContainer.js" + ": " + err.message); } }); } } module.hot.dispose(function (data) { data.makeHot = module.makeHot; data.foundReactClasses = foundReactClasses; }); })(); } }
+	exports.Alert = __webpack_require__(314);
+	exports.BlankState = __webpack_require__(316);
+	exports.Button = __webpack_require__(317);
+	exports.ButtonGroup = __webpack_require__(319);
+	exports.Checkbox = __webpack_require__(320);
+	exports.Card = __webpack_require__(321);
+	exports.Col = __webpack_require__(322);
+	exports.Container = __webpack_require__(324);
+	exports.Dropdown = __webpack_require__(325);
+	exports.EmailInputGroup = __webpack_require__(333);
+	exports.FileDragAndDrop = __webpack_require__(334);
+	exports.FileUpload = __webpack_require__(335);
+	exports.Form = __webpack_require__(337);
+	exports.FormField = __webpack_require__(338);
+	exports.FormIcon = __webpack_require__(339);
+	exports.FormIconField = __webpack_require__(341);
+	exports.FormInput = __webpack_require__(342);
+	exports.FormLabel = __webpack_require__(343);
+	exports.FormNote = __webpack_require__(344);
+	exports.FormRow = __webpack_require__(345);
+	exports.FormSelect = __webpack_require__(346);
+	exports.Glyph = __webpack_require__(349);
+	exports.InputGroup = __webpack_require__(350);
+	exports.InputGroupSection = __webpack_require__(351);
+	exports.Modal = __webpack_require__(352);
+	exports.ModalBody = __webpack_require__(353);
+	exports.ModalFooter = __webpack_require__(354);
+	exports.ModalHeader = __webpack_require__(355);
+	exports.Pagination = __webpack_require__(356);
+	exports.PasswordInputGroup = __webpack_require__(357);
+	exports.Pill = __webpack_require__(358);
+	exports.Radio = __webpack_require__(359);
+	exports.ResponsiveText = __webpack_require__(360);
+	exports.Row = __webpack_require__(361);
+	exports.RadioGroup = __webpack_require__(362);
+	exports.SegmentedControl = __webpack_require__(363);
+	exports.Spinner = __webpack_require__(336);
+	exports.Table = __webpack_require__(364);
 
 /***/ },
 /* 314 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* REACT HOT LOADER */ if (false) { (function () { var ReactHotAPI = require("/Users/purezen_/workspace/story-app/node_modules/react-hot-api/modules/index.js"), RootInstanceProvider = require("/Users/purezen_/workspace/story-app/node_modules/react-hot-loader/RootInstanceProvider.js"), ReactMount = require("react/lib/ReactMount"), React = require("react"); module.makeHot = module.hot.data ? module.hot.data.makeHot : ReactHotAPI(function () { return RootInstanceProvider.getRootInstances(ReactMount); }, React); })(); } try { (function () {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _getPrototypeOf = __webpack_require__(231);
-
-	var _getPrototypeOf2 = _interopRequireDefault(_getPrototypeOf);
-
-	var _classCallCheck2 = __webpack_require__(257);
-
-	var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
-
-	var _createClass2 = __webpack_require__(258);
-
-	var _createClass3 = _interopRequireDefault(_createClass2);
-
-	var _possibleConstructorReturn2 = __webpack_require__(262);
-
-	var _possibleConstructorReturn3 = _interopRequireDefault(_possibleConstructorReturn2);
-
-	var _inherits2 = __webpack_require__(305);
-
-	var _inherits3 = _interopRequireDefault(_inherits2);
-
-	var _react = __webpack_require__(194);
-
-	var _react2 = _interopRequireDefault(_react);
-
-	var _elemental = __webpack_require__(315);
-
-	var _lodash = __webpack_require__(367);
-
-	var _lodash2 = _interopRequireDefault(_lodash);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	// NOTE: since the babel 'lodash' plugin is being
-	//  used, calls like _.merge will change import
-	//  to `import _ from 'lodash/merge'`
-
-	var TaskList = function (_Component) {
-	  (0, _inherits3.default)(TaskList, _Component);
-
-	  function TaskList(props) {
-	    (0, _classCallCheck3.default)(this, TaskList);
-
-	    var _this = (0, _possibleConstructorReturn3.default)(this, (0, _getPrototypeOf2.default)(TaskList).call(this, props));
-
-	    _this.state = {
-	      formData: {},
-	      modalOpenState: {}
-	    };
-	    // TODO: bind methods here
-	    return _this;
-	  }
-
-	  (0, _createClass3.default)(TaskList, [{
-	    key: 'componentDidMount',
-	    value: function componentDidMount() {
-	      // this.props.makeAuthRequest()
-	      this.props.onAppLoad();
-	    }
-	  }, {
-	    key: 'toggleModal',
-	    value: function toggleModal(ref, arg) {
-	      var modalInfo = {};
-	      if (ref === 'objectiveHistory') {
-	        if (arg === null) {
-	          modalInfo.objectiveHistory = null;
-	        } else {
-	          var objectiveHistory = arg;
-	          var elements = objectiveHistory.reduce(function (a, b, ind) {
-	            return (ind === 1 ? "<div>" + a + "</div>" : a) + "<div>" + b + "</div>";
-	          });
-
-	          modalInfo.objectiveHistory = elements;
-	        }
-	      } else {
-	        var taskId = arg;
-	        modalInfo.selectedTaskId = taskId;
-	      }
-
-	      // NOTE: the containerObject is created so that modalOpenState object
-	      // can be referenced in the merge call
-	      // TODO: in fact, the formData object looks needless completely
-	      var currentModalState = this.state.modalOpenState[ref];
-	      var containerObject = { modalOpenState: {} };
-	      containerObject.modalOpenState[ref] = _lodash2.default.isUndefined(currentModalState) ? true : !currentModalState;
-
-	      var updatedState = _lodash2.default.merge({}, this.state, modalInfo, containerObject);
-	      this.setState(updatedState);
-	    }
-	  }, {
-	    key: 'handleFormInputChange',
-	    value: function handleFormInputChange(e) {
-	      // TODO: try removing formContainer
-	      var formContainer = { formData: {} };
-	      formContainer.formData[e.target.name] = e.target.value;
-
-	      this.setState(formContainer);
-	    }
-	  }, {
-	    key: 'handleAddTaskSubmit',
-	    value: function handleAddTaskSubmit(e) {
-	      e.preventDefault();
-	      var initialState = this.state;
-	      this.props.onTaskAdd(this.props.tasks.mainTask.id, initialState.formData['newTask']);
-
-	      var formContainer = { formData: {} };
-	      formContainer.formData['newTask'] = '';
-
-	      this.setState(formContainer);
-	    }
-	  }, {
-	    key: 'handleAddChildTaskSubmit',
-	    value: function handleAddChildTaskSubmit(e) {
-	      e.preventDefault();
-	      var initialState = this.state;
-	      this.props.onTaskAdd(initialState.selectedTaskId, initialState.formData['newChildTask']);
-
-	      var formContainer = { formData: {} };
-	      formContainer.formData['newChildTask'] = '';
-
-	      this.setState(formContainer);
-	    }
-	  }, {
-	    key: 'handleEditTaskSubmit',
-	    value: function handleEditTaskSubmit(e) {
-	      e.preventDefault();
-	      var initialState = this.state;
-	      this.props.onTaskObjectiveEdit(initialState.selectedTaskId, initialState.formData['newObjective']);
-
-	      var formContainer = { formData: {} };
-	      formContainer.formData['newObjective'] = '';
-
-	      this.setState(formContainer);
-	    }
-	  }, {
-	    key: 'render',
-	    value: function render() {
-	      var input = void 0,
-	          modalInput = void 0;
-	      var _props = this.props;
-	      var tasks = _props.tasks;
-	      var onTaskClick = _props.onTaskClick;
-	      var onTaskAdd = _props.onTaskAdd;
-	      var onTaskObjectiveEdit = _props.onTaskObjectiveEdit;
-	      var mainTask = tasks.mainTask;
-	      var subtasks = tasks.subtasks;
-
-	      // NOTE: generates subTask for main task
-
-	      var taskList = [];
-	      var _classThis = this;
-	      // TODO: solve repotition using function binding??
-	      subtasks.forEach(function (t) {
-	        t.subtaskIds.length !== 0 ? taskList.push(_react2.default.createElement(
-	          _elemental.Card,
-	          null,
-	          _react2.default.createElement(
-	            'p',
-	            { onClick: function onClick() {
-	                return onTaskClick(t.id);
-	              } },
-	            t.latestObjective
-	          ),
-	          _react2.default.createElement(
-	            _elemental.Button,
-	            { size: 'xs', href: '#', onClick: function onClick() {
-	                return _classThis.toggleModal('addChildTask', t.id);
-	              } },
-	            'add child task'
-	          ),
-	          ' ',
-	          _react2.default.createElement(
-	            _elemental.Button,
-	            { size: 'xs', href: '#', onClick: function onClick() {
-	                return _classThis.toggleModal('editTask', t.id);
-	              } },
-	            'edit task'
-	          ),
-	          ' ',
-	          _react2.default.createElement(
-	            _elemental.Button,
-	            { size: 'xs', href: '#', onClick: function onClick() {
-	                return _classThis.toggleModal('objectiveHistory', t.objectiveHistory);
-	              } },
-	            'history'
-	          )
-	        )) : taskList.push(_react2.default.createElement(
-	          _elemental.Card,
-	          null,
-	          _react2.default.createElement(
-	            'p',
-	            null,
-	            t.latestObjective
-	          ),
-	          _react2.default.createElement(
-	            _elemental.Button,
-	            { size: 'xs', href: '#', onClick: function onClick() {
-	                return _classThis.toggleModal('addChildTask', t.id);
-	              } },
-	            'add child task'
-	          ),
-	          ' ',
-	          _react2.default.createElement(
-	            _elemental.Button,
-	            { size: 'xs', href: '#', onClick: function onClick() {
-	                return _classThis.toggleModal('editTask', t.id);
-	              } },
-	            'edit task'
-	          ),
-	          ' ',
-	          _react2.default.createElement(
-	            _elemental.Button,
-	            { size: 'xs', href: '#', onClick: function onClick() {
-	                return _classThis.toggleModal('objectiveHistory', t.objectiveHistory);
-	              } },
-	            'history'
-	          )
-	        ));
-	      });
-
-	      return _react2.default.createElement(
-	        'div',
-	        null,
-	        _react2.default.createElement(
-	          _elemental.Row,
-	          null,
-	          ' '
-	        ),
-	        _react2.default.createElement(
-	          _elemental.Row,
-	          null,
-	          _react2.default.createElement(_elemental.Col, { sm: '1/8', md: '1/4' }),
-	          _react2.default.createElement(
-	            _elemental.Col,
-	            { xs: '100%', sm: '6/8', md: '2/4' },
-	            _react2.default.createElement(
-	              _elemental.Card,
-	              null,
-	              _react2.default.createElement(
-	                _elemental.Form,
-	                { onSubmit: this.handleAddTaskSubmit.bind(this) },
-	                _react2.default.createElement(
-	                  _elemental.FormField,
-	                  null,
-	                  _react2.default.createElement(_elemental.FormInput, { autoFocus: true, type: 'text', name: 'newTask', placeholder: 'Enter task here..',
-	                    value: this.state.formData['newTask'], onChange: this.handleFormInputChange.bind(this) })
-	                ),
-	                _react2.default.createElement(
-	                  _elemental.FormField,
-	                  null,
-	                  _react2.default.createElement(
-	                    _elemental.Button,
-	                    { submit: true, size: 'xs' },
-	                    'Add task'
-	                  )
-	                )
-	              ),
-	              _react2.default.createElement(
-	                _elemental.Button,
-	                { size: 'xs', onClick: function onClick() {
-	                    return onTaskClick(1);
-	                  } },
-	                'Take Home!'
-	              )
-	            ),
-	            _react2.default.createElement(
-	              _elemental.Card,
-	              null,
-	              mainTask.latestObjective
-	            ),
-	            taskList,
-	            _react2.default.createElement(
-	              _elemental.Modal,
-	              { isOpen: this.state.modalOpenState.addChildTask || false },
-	              _react2.default.createElement(_elemental.ModalHeader, { text: 'Add Child Task',
-	                onClose: this.toggleModal.bind(this, 'addChildTask', null),
-	                showCloseButton: true }),
-	              _react2.default.createElement(
-	                _elemental.ModalBody,
-	                null,
-	                _react2.default.createElement(
-	                  _elemental.Form,
-	                  { onSubmit: this.handleAddChildTaskSubmit.bind(this) },
-	                  _react2.default.createElement(
-	                    _elemental.FormField,
-	                    null,
-	                    _react2.default.createElement(_elemental.FormInput, { autoFocus: true, type: 'text', name: 'newChildTask', placeholder: 'Enter task here..',
-	                      value: this.state.formData['newChildTask'], onChange: this.handleFormInputChange.bind(this) })
-	                  ),
-	                  _react2.default.createElement(
-	                    _elemental.FormField,
-	                    null,
-	                    _react2.default.createElement(
-	                      _elemental.Button,
-	                      { submit: true, size: 'xs' },
-	                      'Add task'
-	                    )
-	                  )
-	                )
-	              )
-	            ),
-	            _react2.default.createElement(
-	              _elemental.Modal,
-	              { isOpen: this.state.modalOpenState.editTask || false },
-	              _react2.default.createElement(_elemental.ModalHeader, { text: 'Edit Task',
-	                onClose: this.toggleModal.bind(this, 'editTask', null),
-	                showCloseButton: true }),
-	              _react2.default.createElement(
-	                _elemental.ModalBody,
-	                null,
-	                _react2.default.createElement(
-	                  _elemental.Form,
-	                  { onSubmit: this.handleEditTaskSubmit.bind(this) },
-	                  _react2.default.createElement(
-	                    _elemental.FormField,
-	                    null,
-	                    _react2.default.createElement(_elemental.FormInput, { autoFocus: true, type: 'text', name: 'newObjective', placeholder: 'Enter task here..',
-	                      value: this.state.formData['newObjective'], onChange: this.handleFormInputChange.bind(this) })
-	                  ),
-	                  _react2.default.createElement(
-	                    _elemental.FormField,
-	                    null,
-	                    _react2.default.createElement(
-	                      _elemental.Button,
-	                      { submit: true, size: 'xs' },
-	                      'Add task'
-	                    )
-	                  )
-	                )
-	              )
-	            ),
-	            _react2.default.createElement(
-	              _elemental.Modal,
-	              { isOpen: this.state.modalOpenState.objectiveHistory || false },
-	              _react2.default.createElement(_elemental.ModalHeader, { text: 'Objective History',
-	                onClose: this.toggleModal.bind(this, 'objectiveHistory', null),
-	                showCloseButton: true }),
-	              _react2.default.createElement(
-	                _elemental.ModalBody,
-	                null,
-	                this.state.objectiveHistory
-	              )
-	            )
-	          ),
-	          _react2.default.createElement(_elemental.Col, { sm: '1/8', md: '1/4' })
-	        ),
-	        _react2.default.createElement(
-	          _elemental.Row,
-	          null,
-	          ' '
-	        )
-	      );
-	    }
-	  }]);
-	  return TaskList;
-	}(_react.Component);
-
-	exports.default = TaskList;
-
-	/* REACT HOT LOADER */ }).call(this); } finally { if (false) { (function () { var foundReactClasses = module.hot.data && module.hot.data.foundReactClasses || false; if (module.exports && module.makeHot) { var makeExportsHot = require("/Users/purezen_/workspace/story-app/node_modules/react-hot-loader/makeExportsHot.js"); if (makeExportsHot(module, require("react"))) { foundReactClasses = true; } var shouldAcceptModule = true && foundReactClasses; if (shouldAcceptModule) { module.hot.accept(function (err) { if (err) { console.error("Cannot not apply hot update to " + "TaskList.js" + ": " + err.message); } }); } } module.hot.dispose(function (data) { data.makeHot = module.makeHot; data.foundReactClasses = foundReactClasses; }); })(); } }
-
-/***/ },
-/* 315 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	exports.Alert = __webpack_require__(316);
-	exports.BlankState = __webpack_require__(318);
-	exports.Button = __webpack_require__(319);
-	exports.ButtonGroup = __webpack_require__(321);
-	exports.Checkbox = __webpack_require__(322);
-	exports.Card = __webpack_require__(323);
-	exports.Col = __webpack_require__(324);
-	exports.Container = __webpack_require__(326);
-	exports.Dropdown = __webpack_require__(327);
-	exports.EmailInputGroup = __webpack_require__(335);
-	exports.FileDragAndDrop = __webpack_require__(336);
-	exports.FileUpload = __webpack_require__(337);
-	exports.Form = __webpack_require__(339);
-	exports.FormField = __webpack_require__(340);
-	exports.FormIcon = __webpack_require__(341);
-	exports.FormIconField = __webpack_require__(343);
-	exports.FormInput = __webpack_require__(344);
-	exports.FormLabel = __webpack_require__(345);
-	exports.FormNote = __webpack_require__(346);
-	exports.FormRow = __webpack_require__(347);
-	exports.FormSelect = __webpack_require__(348);
-	exports.Glyph = __webpack_require__(351);
-	exports.InputGroup = __webpack_require__(352);
-	exports.InputGroupSection = __webpack_require__(353);
-	exports.Modal = __webpack_require__(354);
-	exports.ModalBody = __webpack_require__(355);
-	exports.ModalFooter = __webpack_require__(356);
-	exports.ModalHeader = __webpack_require__(357);
-	exports.Pagination = __webpack_require__(358);
-	exports.PasswordInputGroup = __webpack_require__(359);
-	exports.Pill = __webpack_require__(360);
-	exports.Radio = __webpack_require__(361);
-	exports.ResponsiveText = __webpack_require__(362);
-	exports.Row = __webpack_require__(363);
-	exports.RadioGroup = __webpack_require__(364);
-	exports.SegmentedControl = __webpack_require__(365);
-	exports.Spinner = __webpack_require__(338);
-	exports.Table = __webpack_require__(366);
-
-/***/ },
-/* 316 */
-/***/ function(module, exports, __webpack_require__) {
-
 	'use strict';
 
 	var React = __webpack_require__(194);
-	var classNames = __webpack_require__(317);
+	var classNames = __webpack_require__(315);
 
 	var ALERT_TYPES = ['danger', 'error', // alias for danger
 	'info', 'primary', 'success', 'warning'];
@@ -3897,7 +3511,7 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 317 */
+/* 315 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -3951,7 +3565,7 @@ webpackJsonp([1],[
 
 
 /***/ },
-/* 318 */
+/* 316 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3981,14 +3595,14 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 319 */
+/* 317 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var React = __webpack_require__(194);
-	var classNames = __webpack_require__(317);
-	var blacklist = __webpack_require__(320);
+	var classNames = __webpack_require__(315);
+	var blacklist = __webpack_require__(318);
 
 	var BUTTON_SIZES = ['lg', 'sm', 'xs'];
 
@@ -4039,7 +3653,7 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 320 */
+/* 318 */
 /***/ function(module, exports) {
 
 	module.exports = function blacklist (src) {
@@ -4064,14 +3678,14 @@ webpackJsonp([1],[
 
 
 /***/ },
-/* 321 */
+/* 319 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-	var classnames = __webpack_require__(317);
+	var classnames = __webpack_require__(315);
 	var React = __webpack_require__(194);
 
 	module.exports = React.createClass({
@@ -4087,15 +3701,15 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 322 */
+/* 320 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-	var blacklist = __webpack_require__(320);
-	var classNames = __webpack_require__(317);
+	var blacklist = __webpack_require__(318);
+	var classNames = __webpack_require__(315);
 	var React = __webpack_require__(194);
 
 	var Checkbox = React.createClass({
@@ -4145,7 +3759,7 @@ webpackJsonp([1],[
 	module.exports = Checkbox;
 
 /***/ },
-/* 323 */
+/* 321 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -4153,7 +3767,7 @@ webpackJsonp([1],[
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 	var React = __webpack_require__(194);
-	var classNames = __webpack_require__(317);
+	var classNames = __webpack_require__(315);
 
 	module.exports = React.createClass({
 		displayName: 'Card',
@@ -4169,7 +3783,7 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 324 */
+/* 322 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -4182,11 +3796,11 @@ webpackJsonp([1],[
 
 	var _react2 = _interopRequireDefault(_react);
 
-	var _blacklist = __webpack_require__(320);
+	var _blacklist = __webpack_require__(318);
 
 	var _blacklist2 = _interopRequireDefault(_blacklist);
 
-	var _constants = __webpack_require__(325);
+	var _constants = __webpack_require__(323);
 
 	var _constants2 = _interopRequireDefault(_constants);
 
@@ -4280,7 +3894,7 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 325 */
+/* 323 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -4354,7 +3968,7 @@ webpackJsonp([1],[
 	}
 
 /***/ },
-/* 326 */
+/* 324 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -4367,11 +3981,11 @@ webpackJsonp([1],[
 
 	var _react2 = _interopRequireDefault(_react);
 
-	var _blacklist = __webpack_require__(320);
+	var _blacklist = __webpack_require__(318);
 
 	var _blacklist2 = _interopRequireDefault(_blacklist);
 
-	var _constants = __webpack_require__(325);
+	var _constants = __webpack_require__(323);
 
 	var _constants2 = _interopRequireDefault(_constants);
 
@@ -4416,7 +4030,7 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 327 */
+/* 325 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -4424,10 +4038,10 @@ webpackJsonp([1],[
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 	var React = __webpack_require__(194);
-	var Transition = __webpack_require__(328);
-	var blacklist = __webpack_require__(320);
-	var classNames = __webpack_require__(317);
-	var Button = __webpack_require__(319);
+	var Transition = __webpack_require__(326);
+	var blacklist = __webpack_require__(318);
+	var classNames = __webpack_require__(315);
+	var Button = __webpack_require__(317);
 
 	var ESC_KEYCODE = 27;
 	var NO_OP = function NO_OP() {
@@ -4566,13 +4180,13 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 328 */
+/* 326 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(329);
+	module.exports = __webpack_require__(327);
 
 /***/ },
-/* 329 */
+/* 327 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -4593,8 +4207,8 @@ webpackJsonp([1],[
 
 	var assign = __webpack_require__(89);
 
-	var ReactTransitionGroup = __webpack_require__(330);
-	var ReactCSSTransitionGroupChild = __webpack_require__(332);
+	var ReactTransitionGroup = __webpack_require__(328);
+	var ReactCSSTransitionGroupChild = __webpack_require__(330);
 
 	function createTransitionTimeoutPropValidator(transitionType) {
 	  var timeoutPropName = 'transition' + transitionType + 'Timeout';
@@ -4660,7 +4274,7 @@ webpackJsonp([1],[
 	module.exports = ReactCSSTransitionGroup;
 
 /***/ },
-/* 330 */
+/* 328 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -4677,7 +4291,7 @@ webpackJsonp([1],[
 	'use strict';
 
 	var React = __webpack_require__(195);
-	var ReactTransitionChildMapping = __webpack_require__(331);
+	var ReactTransitionChildMapping = __webpack_require__(329);
 
 	var assign = __webpack_require__(89);
 	var emptyFunction = __webpack_require__(65);
@@ -4870,7 +4484,7 @@ webpackJsonp([1],[
 	module.exports = ReactTransitionGroup;
 
 /***/ },
-/* 331 */
+/* 329 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -4973,7 +4587,7 @@ webpackJsonp([1],[
 	module.exports = ReactTransitionChildMapping;
 
 /***/ },
-/* 332 */
+/* 330 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -4993,8 +4607,8 @@ webpackJsonp([1],[
 	var React = __webpack_require__(195);
 	var ReactDOM = __webpack_require__(54);
 
-	var CSSCore = __webpack_require__(333);
-	var ReactTransitionEvents = __webpack_require__(334);
+	var CSSCore = __webpack_require__(331);
+	var ReactTransitionEvents = __webpack_require__(332);
 
 	var onlyChild = __webpack_require__(204);
 
@@ -5143,7 +4757,7 @@ webpackJsonp([1],[
 	module.exports = ReactCSSTransitionGroupChild;
 
 /***/ },
-/* 333 */
+/* 331 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -5245,7 +4859,7 @@ webpackJsonp([1],[
 	module.exports = CSSCore;
 
 /***/ },
-/* 334 */
+/* 332 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -5359,13 +4973,13 @@ webpackJsonp([1],[
 	module.exports = ReactTransitionEvents;
 
 /***/ },
-/* 335 */
+/* 333 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var React = __webpack_require__(194);
-	var classNames = __webpack_require__(317);
+	var classNames = __webpack_require__(315);
 
 	var REGEXP_EMAIL = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
@@ -5466,13 +5080,13 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 336 */
+/* 334 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var React = __webpack_require__(194);
-	var classNames = __webpack_require__(317);
+	var classNames = __webpack_require__(315);
 
 	/*
 		Based on: https://github.com/paramaggarwal/react-dropzone
@@ -5553,7 +5167,7 @@ webpackJsonp([1],[
 	module.exports = Dropzone;
 
 /***/ },
-/* 337 */
+/* 335 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -5561,10 +5175,10 @@ webpackJsonp([1],[
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 	var React = __webpack_require__(194);
-	var blacklist = __webpack_require__(320);
+	var blacklist = __webpack_require__(318);
 
-	var Button = __webpack_require__(319);
-	var Spinner = __webpack_require__(338);
+	var Button = __webpack_require__(317);
+	var Spinner = __webpack_require__(336);
 
 	module.exports = React.createClass({
 		displayName: 'FileUpload',
@@ -5690,13 +5304,13 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 338 */
+/* 336 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var React = __webpack_require__(194);
-	var classNames = __webpack_require__(317);
+	var classNames = __webpack_require__(315);
 
 	module.exports = React.createClass({
 		displayName: 'Spinner',
@@ -5725,13 +5339,13 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 339 */
+/* 337 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var blacklist = __webpack_require__(320);
-	var classnames = __webpack_require__(317);
+	var blacklist = __webpack_require__(318);
+	var classnames = __webpack_require__(315);
 	var React = __webpack_require__(194);
 
 	module.exports = React.createClass({
@@ -5757,7 +5371,7 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 340 */
+/* 338 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -5765,8 +5379,8 @@ webpackJsonp([1],[
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 	var React = __webpack_require__(194);
-	var blacklist = __webpack_require__(320);
-	var classNames = __webpack_require__(317);
+	var blacklist = __webpack_require__(318);
+	var classNames = __webpack_require__(315);
 
 	module.exports = React.createClass({
 		displayName: 'FormField',
@@ -5804,16 +5418,16 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 341 */
+/* 339 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var React = __webpack_require__(194);
-	var classNames = __webpack_require__(317);
-	var Spinner = __webpack_require__(338);
+	var classNames = __webpack_require__(315);
+	var Spinner = __webpack_require__(336);
 
-	var icons = __webpack_require__(342).map;
+	var icons = __webpack_require__(340).map;
 
 	module.exports = React.createClass({
 		displayName: 'FormIcon',
@@ -5834,7 +5448,7 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 342 */
+/* 340 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -5858,20 +5472,20 @@ webpackJsonp([1],[
 	};
 
 /***/ },
-/* 343 */
+/* 341 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var React = __webpack_require__(194);
-	var blacklist = __webpack_require__(320);
-	var classNames = __webpack_require__(317);
+	var blacklist = __webpack_require__(318);
+	var classNames = __webpack_require__(315);
 
-	var FormField = __webpack_require__(340);
-	var Spinner = __webpack_require__(338);
+	var FormField = __webpack_require__(338);
+	var Spinner = __webpack_require__(336);
 
-	var ICON_MAP = __webpack_require__(342).map;
-	var ICON_KEYS = __webpack_require__(342).keys;
+	var ICON_MAP = __webpack_require__(340).map;
+	var ICON_KEYS = __webpack_require__(340).keys;
 	var COLOR_VARIANTS = ['danger', 'default', 'primary', 'success', 'warning'];
 
 	module.exports = React.createClass({
@@ -5917,7 +5531,7 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 344 */
+/* 342 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -5925,8 +5539,8 @@ webpackJsonp([1],[
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 	var React = __webpack_require__(194);
-	var blacklist = __webpack_require__(320);
-	var classNames = __webpack_require__(317);
+	var blacklist = __webpack_require__(318);
+	var classNames = __webpack_require__(315);
 
 	module.exports = React.createClass({
 		displayName: 'FormInput',
@@ -5987,7 +5601,7 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 345 */
+/* 343 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -5995,8 +5609,8 @@ webpackJsonp([1],[
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 	var React = __webpack_require__(194);
-	var blacklist = __webpack_require__(320);
-	var classNames = __webpack_require__(317);
+	var blacklist = __webpack_require__(318);
+	var classNames = __webpack_require__(315);
 
 	module.exports = React.createClass({
 		displayName: 'FormLabel',
@@ -6028,7 +5642,7 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 346 */
+/* 344 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -6036,8 +5650,8 @@ webpackJsonp([1],[
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 	var React = __webpack_require__(194);
-	var blacklist = __webpack_require__(320);
-	var classNames = __webpack_require__(317);
+	var blacklist = __webpack_require__(318);
+	var classNames = __webpack_require__(315);
 
 	var NOTE_TYPES = ['default', 'primary', 'success', 'warning', 'danger'];
 
@@ -6070,13 +5684,13 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 347 */
+/* 345 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var React = __webpack_require__(194);
-	var classNames = __webpack_require__(317);
+	var classNames = __webpack_require__(315);
 
 	module.exports = React.createClass({
 		displayName: 'FormRow',
@@ -6095,7 +5709,7 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 348 */
+/* 346 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -6104,11 +5718,11 @@ webpackJsonp([1],[
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-	var _blacklist = __webpack_require__(320);
+	var _blacklist = __webpack_require__(318);
 
 	var _blacklist2 = _interopRequireDefault(_blacklist);
 
-	var _classnames = __webpack_require__(317);
+	var _classnames = __webpack_require__(315);
 
 	var _classnames2 = _interopRequireDefault(_classnames);
 
@@ -6116,7 +5730,7 @@ webpackJsonp([1],[
 
 	var _react2 = _interopRequireDefault(_react);
 
-	var _icons = __webpack_require__(349);
+	var _icons = __webpack_require__(347);
 
 	var _icons2 = _interopRequireDefault(_icons);
 
@@ -6261,17 +5875,17 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 349 */
+/* 347 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	module.exports = {
-		selectArrows: __webpack_require__(350)
+		selectArrows: __webpack_require__(348)
 	};
 
 /***/ },
-/* 350 */
+/* 348 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -6279,16 +5893,16 @@ webpackJsonp([1],[
 	module.exports = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>' + '<svg width="7px" height="11px" viewBox="0 0 7 11" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">' + '<path d="M3.5,0 L7,4 L0,4 L3.5,0 Z M3.5,11 L7,7 L0,7 L3.5,11 Z" />' + '</svg>';
 
 /***/ },
-/* 351 */
+/* 349 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var React = __webpack_require__(194);
-	var classNames = __webpack_require__(317);
+	var classNames = __webpack_require__(315);
 
-	var icons = __webpack_require__(342).map;
-	var validNames = __webpack_require__(342).keys;
+	var icons = __webpack_require__(340).map;
+	var validNames = __webpack_require__(340).keys;
 
 	var Glyph = React.createClass({
 		displayName: 'Glyph',
@@ -6308,7 +5922,7 @@ webpackJsonp([1],[
 	module.exports.names = validNames;
 
 /***/ },
-/* 352 */
+/* 350 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -6316,7 +5930,7 @@ webpackJsonp([1],[
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 	var React = __webpack_require__(194);
-	var classNames = __webpack_require__(317);
+	var classNames = __webpack_require__(315);
 
 	module.exports = React.createClass({
 		displayName: 'InputGroup',
@@ -6335,10 +5949,10 @@ webpackJsonp([1],[
 	});
 
 	// expose the child to the top level export
-	module.exports.Section = __webpack_require__(353);
+	module.exports.Section = __webpack_require__(351);
 
 /***/ },
-/* 353 */
+/* 351 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -6346,7 +5960,7 @@ webpackJsonp([1],[
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 	var React = __webpack_require__(194);
-	var classNames = __webpack_require__(317);
+	var classNames = __webpack_require__(315);
 
 	module.exports = React.createClass({
 		displayName: 'InputGroupSection',
@@ -6365,7 +5979,7 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 354 */
+/* 352 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -6382,19 +5996,19 @@ webpackJsonp([1],[
 
 	var _reactDom2 = _interopRequireDefault(_reactDom);
 
-	var _reactAddonsCssTransitionGroup = __webpack_require__(328);
+	var _reactAddonsCssTransitionGroup = __webpack_require__(326);
 
 	var _reactAddonsCssTransitionGroup2 = _interopRequireDefault(_reactAddonsCssTransitionGroup);
 
-	var _blacklist = __webpack_require__(320);
+	var _blacklist = __webpack_require__(318);
 
 	var _blacklist2 = _interopRequireDefault(_blacklist);
 
-	var _classnames = __webpack_require__(317);
+	var _classnames = __webpack_require__(315);
 
 	var _classnames2 = _interopRequireDefault(_classnames);
 
-	var _constants = __webpack_require__(325);
+	var _constants = __webpack_require__(323);
 
 	var TransitionPortal = _react2['default'].createClass({
 		displayName: 'TransitionPortal',
@@ -6554,19 +6168,19 @@ webpackJsonp([1],[
 	});
 
 	// expose the children to the top level export
-	module.exports.Body = __webpack_require__(355);
-	module.exports.Footer = __webpack_require__(356);
-	module.exports.Header = __webpack_require__(357);
+	module.exports.Body = __webpack_require__(353);
+	module.exports.Footer = __webpack_require__(354);
+	module.exports.Header = __webpack_require__(355);
 
 /***/ },
-/* 355 */
+/* 353 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-	var classnames = __webpack_require__(317);
+	var classnames = __webpack_require__(315);
 	var React = __webpack_require__(194);
 
 	module.exports = React.createClass({
@@ -6582,14 +6196,14 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 356 */
+/* 354 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-	var classnames = __webpack_require__(317);
+	var classnames = __webpack_require__(315);
 	var React = __webpack_require__(194);
 
 	module.exports = React.createClass({
@@ -6605,14 +6219,14 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 357 */
+/* 355 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-	var classnames = __webpack_require__(317);
+	var classnames = __webpack_require__(315);
 	var React = __webpack_require__(194);
 
 	module.exports = React.createClass({
@@ -6649,13 +6263,13 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 358 */
+/* 356 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var React = __webpack_require__(194);
-	var classNames = __webpack_require__(317);
+	var classNames = __webpack_require__(315);
 
 	var Page = React.createClass({
 		displayName: 'Page',
@@ -6804,13 +6418,13 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 359 */
+/* 357 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var React = __webpack_require__(194);
-	var classNames = __webpack_require__(317);
+	var classNames = __webpack_require__(315);
 
 	function validatePassword(value) {
 		return value.length >= 8;
@@ -6911,14 +6525,14 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 360 */
+/* 358 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var React = __webpack_require__(194);
-	var blacklist = __webpack_require__(320);
-	var classNames = __webpack_require__(317);
+	var blacklist = __webpack_require__(318);
+	var classNames = __webpack_require__(315);
 
 	var ALERT_TYPES = ['danger', 'default', 'info', 'primary', 'success', 'warning', 'danger-inverted', 'default-inverted', 'info-inverted', 'primary-inverted', 'success-inverted', 'warning-inverted'];
 
@@ -6964,15 +6578,15 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 361 */
+/* 359 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-	var blacklist = __webpack_require__(320);
-	var classNames = __webpack_require__(317);
+	var blacklist = __webpack_require__(318);
+	var classNames = __webpack_require__(315);
 	var React = __webpack_require__(194);
 
 	var Radio = React.createClass({
@@ -7007,7 +6621,7 @@ webpackJsonp([1],[
 	module.exports = Radio;
 
 /***/ },
-/* 362 */
+/* 360 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -7018,11 +6632,11 @@ webpackJsonp([1],[
 
 	var _react2 = _interopRequireDefault(_react);
 
-	var _blacklist = __webpack_require__(320);
+	var _blacklist = __webpack_require__(318);
 
 	var _blacklist2 = _interopRequireDefault(_blacklist);
 
-	var _constants = __webpack_require__(325);
+	var _constants = __webpack_require__(323);
 
 	var _constants2 = _interopRequireDefault(_constants);
 
@@ -7099,7 +6713,7 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 363 */
+/* 361 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -7112,15 +6726,15 @@ webpackJsonp([1],[
 
 	var _react2 = _interopRequireDefault(_react);
 
-	var _blacklist = __webpack_require__(320);
+	var _blacklist = __webpack_require__(318);
 
 	var _blacklist2 = _interopRequireDefault(_blacklist);
 
-	var _classnames = __webpack_require__(317);
+	var _classnames = __webpack_require__(315);
 
 	var _classnames2 = _interopRequireDefault(_classnames);
 
-	var _constants = __webpack_require__(325);
+	var _constants = __webpack_require__(323);
 
 	var _constants2 = _interopRequireDefault(_constants);
 
@@ -7156,7 +6770,7 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 364 */
+/* 362 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -7164,8 +6778,8 @@ webpackJsonp([1],[
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 	var React = __webpack_require__(194);
-	var blacklist = __webpack_require__(320);
-	var classNames = __webpack_require__(317);
+	var blacklist = __webpack_require__(318);
+	var classNames = __webpack_require__(315);
 
 	module.exports = React.createClass({
 		displayName: 'RadioGroup',
@@ -7290,14 +6904,14 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 365 */
+/* 363 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-	var _classnames = __webpack_require__(317);
+	var _classnames = __webpack_require__(315);
 
 	var _classnames2 = _interopRequireDefault(_classnames);
 
@@ -7360,7 +6974,7 @@ webpackJsonp([1],[
 	});
 
 /***/ },
-/* 366 */
+/* 364 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -7369,7 +6983,7 @@ webpackJsonp([1],[
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-	var _classnames = __webpack_require__(317);
+	var _classnames = __webpack_require__(315);
 
 	var _classnames2 = _interopRequireDefault(_classnames);
 
@@ -7393,6 +7007,437 @@ webpackJsonp([1],[
 			return _react2['default'].createElement('table', _extends({}, this.props, { className: className }));
 		}
 	});
+
+/***/ },
+/* 365 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* REACT HOT LOADER */ if (false) { (function () { var ReactHotAPI = require("/Users/purezen_/workspace/story-app/node_modules/react-hot-api/modules/index.js"), RootInstanceProvider = require("/Users/purezen_/workspace/story-app/node_modules/react-hot-loader/RootInstanceProvider.js"), ReactMount = require("react/lib/ReactMount"), React = require("react"); module.makeHot = module.hot.data ? module.hot.data.makeHot : ReactHotAPI(function () { return RootInstanceProvider.getRootInstances(ReactMount); }, React); })(); } try { (function () {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _reactRedux = __webpack_require__(206);
+
+	var _TaskList = __webpack_require__(366);
+
+	var _TaskList2 = _interopRequireDefault(_TaskList);
+
+	var _actions = __webpack_require__(369);
+
+	var a = _interopRequireWildcard(_actions);
+
+	var _lodash = __webpack_require__(367);
+
+	var _lodash2 = _interopRequireDefault(_lodash);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	// TODO: find how to make paths relative to client/ using webpack
+
+
+	var getCurrentTasks = function getCurrentTasks(tasks, currentTaskId) {
+	  var mainTask = tasks[currentTaskId];
+	  var subtasks = [];
+
+	  // populating subtasks
+	  // TODO: this can be improved.. try finding something like each from lodash
+	  _lodash2.default.forEach(tasks, function (task, taskId) {
+	    if (mainTask.subtaskIds.includes(taskId)) {
+	      subtasks.push(tasks[taskId]);
+	    }
+	  });
+
+	  return { mainTask: mainTask, subtasks: subtasks };
+	};
+
+	var mapStateToProps = function mapStateToProps(state) {
+	  return {
+	    tasks: getCurrentTasks(state.tasksById, state.selectedTaskId)
+	  };
+	};
+
+	var mapDispatchToProps = function mapDispatchToProps(dispatch) {
+	  return {
+	    onTaskClick: function onTaskClick(id) {
+	      dispatch(a.expandTask(id));
+	    },
+	    onTaskAdd: function onTaskAdd(parentTaskId, objective) {
+	      dispatch(a.addTaskAndPostData(parentTaskId, objective));
+	    },
+	    onTaskObjectiveEdit: function onTaskObjectiveEdit(id, objective) {
+	      dispatch(a.editTaskObjectiveAndPostData(id, objective));
+	    },
+	    onAppLoad: function onAppLoad() {
+	      dispatch(a.loadTaskList());
+	    },
+	    makeAuthRequest: function makeAuthRequest() {
+	      dispatch(a.makeAuthRequest());
+	    }
+	  };
+	};
+
+	var TaskListContainer = (0, _reactRedux.connect)(mapStateToProps, mapDispatchToProps)(_TaskList2.default);
+
+	exports.default = TaskListContainer;
+
+	/* REACT HOT LOADER */ }).call(this); } finally { if (false) { (function () { var foundReactClasses = module.hot.data && module.hot.data.foundReactClasses || false; if (module.exports && module.makeHot) { var makeExportsHot = require("/Users/purezen_/workspace/story-app/node_modules/react-hot-loader/makeExportsHot.js"); if (makeExportsHot(module, require("react"))) { foundReactClasses = true; } var shouldAcceptModule = true && foundReactClasses; if (shouldAcceptModule) { module.hot.accept(function (err) { if (err) { console.error("Cannot not apply hot update to " + "TaskListContainer.js" + ": " + err.message); } }); } } module.hot.dispose(function (data) { data.makeHot = module.makeHot; data.foundReactClasses = foundReactClasses; }); })(); } }
+
+/***/ },
+/* 366 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* REACT HOT LOADER */ if (false) { (function () { var ReactHotAPI = require("/Users/purezen_/workspace/story-app/node_modules/react-hot-api/modules/index.js"), RootInstanceProvider = require("/Users/purezen_/workspace/story-app/node_modules/react-hot-loader/RootInstanceProvider.js"), ReactMount = require("react/lib/ReactMount"), React = require("react"); module.makeHot = module.hot.data ? module.hot.data.makeHot : ReactHotAPI(function () { return RootInstanceProvider.getRootInstances(ReactMount); }, React); })(); } try { (function () {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _getPrototypeOf = __webpack_require__(231);
+
+	var _getPrototypeOf2 = _interopRequireDefault(_getPrototypeOf);
+
+	var _classCallCheck2 = __webpack_require__(257);
+
+	var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
+
+	var _createClass2 = __webpack_require__(258);
+
+	var _createClass3 = _interopRequireDefault(_createClass2);
+
+	var _possibleConstructorReturn2 = __webpack_require__(262);
+
+	var _possibleConstructorReturn3 = _interopRequireDefault(_possibleConstructorReturn2);
+
+	var _inherits2 = __webpack_require__(305);
+
+	var _inherits3 = _interopRequireDefault(_inherits2);
+
+	var _react = __webpack_require__(194);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	var _elemental = __webpack_require__(313);
+
+	var _lodash = __webpack_require__(367);
+
+	var _lodash2 = _interopRequireDefault(_lodash);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	// NOTE: since the babel 'lodash' plugin is being
+	//  used, calls like _.merge will change import
+	//  to `import _ from 'lodash/merge'`
+
+	var TaskList = function (_Component) {
+	  (0, _inherits3.default)(TaskList, _Component);
+
+	  function TaskList(props) {
+	    (0, _classCallCheck3.default)(this, TaskList);
+
+	    var _this = (0, _possibleConstructorReturn3.default)(this, (0, _getPrototypeOf2.default)(TaskList).call(this, props));
+
+	    _this.state = {
+	      formData: {},
+	      modalOpenState: {}
+	    };
+	    // TODO: bind methods here
+	    return _this;
+	  }
+
+	  (0, _createClass3.default)(TaskList, [{
+	    key: 'componentDidMount',
+	    value: function componentDidMount() {
+	      this.props.onAppLoad();
+	    }
+	  }, {
+	    key: 'toggleModal',
+	    value: function toggleModal(ref, arg) {
+	      var modalInfo = {};
+	      if (ref === 'objectiveHistory') {
+	        if (arg === null) {
+	          modalInfo.objectiveHistory = null;
+	        } else {
+	          var objectiveHistory = arg;
+	          var elements = objectiveHistory.reduce(function (a, b, ind) {
+	            return (ind === 1 ? "<div>" + a + "</div>" : a) + "<div>" + b + "</div>";
+	          });
+
+	          modalInfo.objectiveHistory = elements;
+	        }
+	      } else {
+	        var taskId = arg;
+	        modalInfo.selectedTaskId = taskId;
+	      }
+
+	      // NOTE: the containerObject is created so that modalOpenState object
+	      // can be referenced in the merge call
+	      // TODO: in fact, the formData object looks needless completely
+	      var currentModalState = this.state.modalOpenState[ref];
+	      var containerObject = { modalOpenState: {} };
+	      containerObject.modalOpenState[ref] = _lodash2.default.isUndefined(currentModalState) ? true : !currentModalState;
+
+	      var updatedState = _lodash2.default.merge({}, this.state, modalInfo, containerObject);
+	      this.setState(updatedState);
+	    }
+	  }, {
+	    key: 'handleFormInputChange',
+	    value: function handleFormInputChange(e) {
+	      // TODO: try removing formContainer
+	      var formContainer = { formData: {} };
+	      formContainer.formData[e.target.name] = e.target.value;
+
+	      this.setState(formContainer);
+	    }
+	  }, {
+	    key: 'handleAddTaskSubmit',
+	    value: function handleAddTaskSubmit(e) {
+	      e.preventDefault();
+	      var initialState = this.state;
+	      this.props.onTaskAdd(this.props.tasks.mainTask.id, initialState.formData['newTask']);
+
+	      var formContainer = { formData: {} };
+	      formContainer.formData['newTask'] = '';
+
+	      this.setState(formContainer);
+	    }
+	  }, {
+	    key: 'handleAddChildTaskSubmit',
+	    value: function handleAddChildTaskSubmit(e) {
+	      e.preventDefault();
+	      var initialState = this.state;
+	      this.props.onTaskAdd(initialState.selectedTaskId, initialState.formData['newChildTask']);
+
+	      var formContainer = { formData: {} };
+	      formContainer.formData['newChildTask'] = '';
+
+	      this.setState(formContainer);
+	    }
+	  }, {
+	    key: 'handleEditTaskSubmit',
+	    value: function handleEditTaskSubmit(e) {
+	      e.preventDefault();
+	      var initialState = this.state;
+	      this.props.onTaskObjectiveEdit(initialState.selectedTaskId, initialState.formData['newObjective']);
+
+	      var formContainer = { formData: {} };
+	      formContainer.formData['newObjective'] = '';
+
+	      this.setState(formContainer);
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      var input = void 0,
+	          modalInput = void 0;
+	      var _props = this.props;
+	      var tasks = _props.tasks;
+	      var onTaskClick = _props.onTaskClick;
+	      var onTaskAdd = _props.onTaskAdd;
+	      var onTaskObjectiveEdit = _props.onTaskObjectiveEdit;
+	      var mainTask = tasks.mainTask;
+	      var subtasks = tasks.subtasks;
+
+	      // NOTE: generates subTask for main task
+
+	      var taskList = [];
+	      var _classThis = this;
+	      // TODO: solve repotition using function binding??
+	      subtasks.forEach(function (t) {
+	        t.subtaskIds.length !== 0 ? taskList.push(_react2.default.createElement(
+	          _elemental.Card,
+	          null,
+	          _react2.default.createElement(
+	            'p',
+	            { onClick: function onClick() {
+	                return onTaskClick(t.id);
+	              } },
+	            t.latestObjective
+	          ),
+	          _react2.default.createElement(
+	            _elemental.Button,
+	            { size: 'xs', href: '#', onClick: function onClick() {
+	                return _classThis.toggleModal('addChildTask', t.id);
+	              } },
+	            'add child task'
+	          ),
+	          ' ',
+	          _react2.default.createElement(
+	            _elemental.Button,
+	            { size: 'xs', href: '#', onClick: function onClick() {
+	                return _classThis.toggleModal('editTask', t.id);
+	              } },
+	            'edit task'
+	          ),
+	          ' ',
+	          _react2.default.createElement(
+	            _elemental.Button,
+	            { size: 'xs', href: '#', onClick: function onClick() {
+	                return _classThis.toggleModal('objectiveHistory', t.objectiveHistory);
+	              } },
+	            'history'
+	          )
+	        )) : taskList.push(_react2.default.createElement(
+	          _elemental.Card,
+	          null,
+	          _react2.default.createElement(
+	            'p',
+	            null,
+	            t.latestObjective
+	          ),
+	          _react2.default.createElement(
+	            _elemental.Button,
+	            { size: 'xs', href: '#', onClick: function onClick() {
+	                return _classThis.toggleModal('addChildTask', t.id);
+	              } },
+	            'add child task'
+	          ),
+	          ' ',
+	          _react2.default.createElement(
+	            _elemental.Button,
+	            { size: 'xs', href: '#', onClick: function onClick() {
+	                return _classThis.toggleModal('editTask', t.id);
+	              } },
+	            'edit task'
+	          ),
+	          ' ',
+	          _react2.default.createElement(
+	            _elemental.Button,
+	            { size: 'xs', href: '#', onClick: function onClick() {
+	                return _classThis.toggleModal('objectiveHistory', t.objectiveHistory);
+	              } },
+	            'history'
+	          )
+	        ));
+	      });
+
+	      return _react2.default.createElement(
+	        'div',
+	        null,
+	        _react2.default.createElement(
+	          _elemental.Card,
+	          null,
+	          _react2.default.createElement(
+	            _elemental.Form,
+	            { onSubmit: this.handleAddTaskSubmit.bind(this) },
+	            _react2.default.createElement(
+	              _elemental.FormField,
+	              null,
+	              _react2.default.createElement(_elemental.FormInput, { autoFocus: true, type: 'text', name: 'newTask', placeholder: 'Enter task here..',
+	                value: this.state.formData['newTask'], onChange: this.handleFormInputChange.bind(this) })
+	            ),
+	            _react2.default.createElement(
+	              _elemental.FormField,
+	              null,
+	              _react2.default.createElement(
+	                _elemental.Button,
+	                { submit: true, size: 'xs' },
+	                'Add task'
+	              )
+	            )
+	          ),
+	          _react2.default.createElement(
+	            _elemental.Button,
+	            { size: 'xs', onClick: function onClick() {
+	                return onTaskClick(1);
+	              } },
+	            'Take Home!'
+	          )
+	        ),
+	        _react2.default.createElement(
+	          _elemental.Card,
+	          null,
+	          mainTask.latestObjective
+	        ),
+	        taskList,
+	        _react2.default.createElement(
+	          _elemental.Modal,
+	          { isOpen: this.state.modalOpenState.addChildTask || false },
+	          _react2.default.createElement(_elemental.ModalHeader, { text: 'Add Child Task',
+	            onClose: this.toggleModal.bind(this, 'addChildTask', null),
+	            showCloseButton: true }),
+	          _react2.default.createElement(
+	            _elemental.ModalBody,
+	            null,
+	            _react2.default.createElement(
+	              _elemental.Form,
+	              { onSubmit: this.handleAddChildTaskSubmit.bind(this) },
+	              _react2.default.createElement(
+	                _elemental.FormField,
+	                null,
+	                _react2.default.createElement(_elemental.FormInput, { autoFocus: true, type: 'text', name: 'newChildTask', placeholder: 'Enter task here..',
+	                  value: this.state.formData['newChildTask'], onChange: this.handleFormInputChange.bind(this) })
+	              ),
+	              _react2.default.createElement(
+	                _elemental.FormField,
+	                null,
+	                _react2.default.createElement(
+	                  _elemental.Button,
+	                  { submit: true, size: 'xs' },
+	                  'Add task'
+	                )
+	              )
+	            )
+	          )
+	        ),
+	        _react2.default.createElement(
+	          _elemental.Modal,
+	          { isOpen: this.state.modalOpenState.editTask || false },
+	          _react2.default.createElement(_elemental.ModalHeader, { text: 'Edit Task',
+	            onClose: this.toggleModal.bind(this, 'editTask', null),
+	            showCloseButton: true }),
+	          _react2.default.createElement(
+	            _elemental.ModalBody,
+	            null,
+	            _react2.default.createElement(
+	              _elemental.Form,
+	              { onSubmit: this.handleEditTaskSubmit.bind(this) },
+	              _react2.default.createElement(
+	                _elemental.FormField,
+	                null,
+	                _react2.default.createElement(_elemental.FormInput, { autoFocus: true, type: 'text', name: 'newObjective', placeholder: 'Enter task here..',
+	                  value: this.state.formData['newObjective'], onChange: this.handleFormInputChange.bind(this) })
+	              ),
+	              _react2.default.createElement(
+	                _elemental.FormField,
+	                null,
+	                _react2.default.createElement(
+	                  _elemental.Button,
+	                  { submit: true, size: 'xs' },
+	                  'Add task'
+	                )
+	              )
+	            )
+	          )
+	        ),
+	        _react2.default.createElement(
+	          _elemental.Modal,
+	          { isOpen: this.state.modalOpenState.objectiveHistory || false },
+	          _react2.default.createElement(_elemental.ModalHeader, { text: 'Objective History',
+	            onClose: this.toggleModal.bind(this, 'objectiveHistory', null),
+	            showCloseButton: true }),
+	          _react2.default.createElement(
+	            _elemental.ModalBody,
+	            null,
+	            this.state.objectiveHistory
+	          )
+	        )
+	      );
+	    }
+	  }]);
+	  return TaskList;
+	}(_react.Component);
+
+	exports.default = TaskList;
+
+	/* REACT HOT LOADER */ }).call(this); } finally { if (false) { (function () { var foundReactClasses = module.hot.data && module.hot.data.foundReactClasses || false; if (module.exports && module.makeHot) { var makeExportsHot = require("/Users/purezen_/workspace/story-app/node_modules/react-hot-loader/makeExportsHot.js"); if (makeExportsHot(module, require("react"))) { foundReactClasses = true; } var shouldAcceptModule = true && foundReactClasses; if (shouldAcceptModule) { module.hot.accept(function (err) { if (err) { console.error("Cannot not apply hot update to " + "TaskList.js" + ": " + err.message); } }); } } module.hot.dispose(function (data) { data.makeHot = module.makeHot; data.foundReactClasses = foundReactClasses; }); })(); } }
 
 /***/ },
 /* 367 */
@@ -23460,6 +23505,8 @@ webpackJsonp([1],[
 
 	var _stringify2 = _interopRequireDefault(_stringify);
 
+	exports.stopSpinner = stopSpinner;
+	exports.startSpinner = startSpinner;
 	exports.loadTaskList = loadTaskList;
 	exports.postTaskList = postTaskList;
 	exports.expandTask = expandTask;
@@ -23477,6 +23524,20 @@ webpackJsonp([1],[
 	var baseURL =  false ? 'http://localhost:5000' : 'https://pacific-inlet-73638.herokuapp.com';
 
 	// TODO: split actions under different categories headers
+
+	// *******************
+	// UI actions
+	function stopSpinner() {
+	  return {
+	    type: 'STOP_SPINNER'
+	  };
+	}
+
+	function startSpinner() {
+	  return {
+	    type: 'START_SPINNER'
+	  };
+	}
 
 	// **************************
 	// Base Task List actions
@@ -46826,7 +46887,8 @@ webpackJsonp([1],[
 	    "1": { "id": "1", "latestObjective": "lol.. data is loading", "objectiveHistory": ["lol.. data is loading"], "subtaskIds": [] }
 	  },
 	  selectedTaskId: "1",
-	  authToken: null
+	  authToken: null,
+	  spinner: false
 	};
 
 	var eachTask = function eachTask(state, action) {
@@ -46870,6 +46932,10 @@ webpackJsonp([1],[
 	      });
 	    case 'SET_AUTH':
 	      return (0, _immutabilityHelper2.default)(state, { authToken: { $set: action.token } });
+	    case 'STOP_SPINNER':
+	      return (0, _immutabilityHelper2.default)(state, { spinner: { $set: false } });
+	    case 'START_SPINNER':
+	      return (0, _immutabilityHelper2.default)(state, { spinner: { $set: true } });
 	    default:
 	      return state;
 	  }
